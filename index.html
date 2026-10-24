@@ -1,0 +1,2942 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antecipe · Painel</title>
+<meta name="description" content="Painel para enviar regras, base cadastral e lotes de notas à API Antecipe e analisar os resultados.">
+<style>
+  /* ============================================================
+     TOKENS (claro / escuro) · identidade inspirada na Kanastra:
+     creme quente + verdes profundos, Inter no texto e Montserrat nos títulos
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --page: #f8f1e0;
+    --surface: #fffcf4;
+    --surface-2: #f3ecdb;
+    --surface-3: #e4dece;
+    --border: #e4dece;
+    --border-strong: #cbc5b7;
+    --text: #120c07;
+    --text-2: #6c6158;
+    --muted: #83786e;
+    --baseline: #cbc5b7;
+    --series-1: #059669;
+    --track: #d1fae5;
+    --accent: #064e3b;
+    --accent-hover: #047857;
+    --accent-weak: rgba(5, 150, 105, 0.10);
+    --link: #047857;
+    --focus: #10b981;
+    --good: #16a34a;
+    --warning: #d97706;
+    --critical: #e11d48;
+    --critical-weak: #fff1f2;
+    --critical-line: #fecdd3;
+    --warning-weak: #fffbeb;
+    --warning-line: #fde68a;
+    --tooltip-bg: #120c07;
+    --tooltip-text: #f8f1e0;
+    --shadow: 0 1px 3px rgba(18, 12, 7, 0.06), 0 1px 2px -1px rgba(18, 12, 7, 0.06);
+    --shadow-lg: 0 12px 16px -4px rgba(18, 12, 7, 0.08), 0 4px 6px -2px rgba(18, 12, 7, 0.03);
+    --radius: 14px;
+    --hero-bg: linear-gradient(160deg, #022c22 0%, #064e3b 58%, #02352b 100%);
+    --hero-text: #f8f1e0;
+    --hero-text-2: rgba(248, 241, 224, 0.68);
+    --hero-line: rgba(167, 243, 208, 0.18);
+    --hero-field: rgba(255, 255, 255, 0.07);
+    /* Só fontes locais: usa Inter/Montserrat se estiverem instaladas, senão as do sistema. */
+    --sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --display: "Montserrat", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #011d17;
+      --surface: #032a22;
+      --surface-2: #05362b;
+      --surface-3: #0a4637;
+      --border: rgba(167, 243, 208, 0.12);
+      --border-strong: rgba(167, 243, 208, 0.24);
+      --text: #f8f1e0;
+      --text-2: #b9c7bd;
+      --muted: #84a094;
+      --baseline: rgba(167, 243, 208, 0.22);
+      --series-1: #34d399;
+      --track: #065f46;
+      --accent: #059669;
+      --accent-hover: #10b981;
+      --accent-weak: rgba(52, 211, 153, 0.13);
+      --link: #6ee7b7;
+      --focus: #34d399;
+      --good: #22c55e;
+      --warning: #f59e0b;
+      --critical: #f43f5e;
+      --critical-weak: rgba(244, 63, 94, 0.12);
+      --critical-line: rgba(244, 63, 94, 0.45);
+      --warning-weak: rgba(245, 158, 11, 0.10);
+      --warning-line: rgba(245, 158, 11, 0.45);
+      --tooltip-bg: #f8f1e0;
+      --tooltip-text: #120c07;
+      --shadow: none;
+      --shadow-lg: 0 28px 80px rgba(2, 44, 34, 0.5);
+      --hero-bg: linear-gradient(160deg, #00140f 0%, #022c22 60%, #01231b 100%);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #011d17;
+    --surface: #032a22;
+    --surface-2: #05362b;
+    --surface-3: #0a4637;
+    --border: rgba(167, 243, 208, 0.12);
+    --border-strong: rgba(167, 243, 208, 0.24);
+    --text: #f8f1e0;
+    --text-2: #b9c7bd;
+    --muted: #84a094;
+    --baseline: rgba(167, 243, 208, 0.22);
+    --series-1: #34d399;
+    --track: #065f46;
+    --accent: #059669;
+    --accent-hover: #10b981;
+    --accent-weak: rgba(52, 211, 153, 0.13);
+    --link: #6ee7b7;
+    --focus: #34d399;
+    --good: #22c55e;
+    --warning: #f59e0b;
+    --critical: #f43f5e;
+    --critical-weak: rgba(244, 63, 94, 0.12);
+    --critical-line: rgba(244, 63, 94, 0.45);
+    --warning-weak: rgba(245, 158, 11, 0.10);
+    --warning-line: rgba(245, 158, 11, 0.45);
+    --tooltip-bg: #f8f1e0;
+    --tooltip-text: #120c07;
+    --shadow: none;
+    --shadow-lg: 0 28px 80px rgba(2, 44, 34, 0.5);
+    --hero-bg: linear-gradient(160deg, #00140f 0%, #022c22 60%, #01231b 100%);
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font: 14px/1.55 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  a { color: var(--link); }
+  code, .mono { font-family: var(--mono); font-size: 0.9em; }
+  h1, h2, h3, h4 { margin: 0; line-height: 1.25; font-family: var(--display); }
+  h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
+  h3 { font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; }
+  h4 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-2); margin-bottom: 6px;
+  }
+  p { margin: 0; }
+  ::selection { background: var(--track); color: var(--text); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip-link { position: absolute; left: -9999px; top: 8px; z-index: 100; }
+  .skip-link:focus { left: 8px; background: var(--surface); padding: 8px 12px; border-radius: 6px; }
+  .muted { color: var(--text-2); }
+  .hint { color: var(--text-2); font-size: 13px; margin-top: 8px; }
+  .endpoint {
+    display: inline-block; color: var(--muted); font: 11.5px var(--mono); margin-top: 12px;
+    padding: 3px 8px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border);
+  }
+
+  /* ============================================================
+     TOPO, CONEXÃO E ABAS
+     ============================================================ */
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+    padding: 14px 28px; background: var(--hero-bg); color: var(--hero-text);
+    border-bottom: 1px solid var(--hero-line);
+  }
+  @media (min-width: 900px) {
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      box-shadow: 0 8px 24px -12px rgba(2, 44, 34, 0.45);
+    }
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(145deg, #34d399, #059669);
+    color: #022c22; display: grid; place-items: center;
+    font: 800 17px var(--display); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+  .brand strong { display: block; font: 700 16px/1.2 var(--display); letter-spacing: -0.02em; }
+  .brand small { display: block; color: var(--hero-text-2); font-size: 12px; }
+  .conn { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .conn label { font-size: 12px; font-weight: 600; color: var(--hero-text-2); }
+  .conn input { width: 230px; }
+  .topbar input[type="text"] {
+    background: var(--hero-field); border-color: var(--hero-line); color: var(--hero-text);
+  }
+  .topbar input[type="text"]::placeholder { color: rgba(248, 241, 224, 0.45); }
+  .topbar .btn {
+    background: rgba(255, 255, 255, 0.10); border-color: rgba(228, 222, 206, 0.55); color: #fff;
+  }
+  .topbar .btn:hover { background: rgba(255, 255, 255, 0.18); }
+  .topbar .btn.ghost { border-color: transparent; background: none; color: var(--hero-text-2); }
+  .topbar .btn.ghost:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+  .conn-status {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500;
+    min-width: 110px; color: var(--hero-text-2);
+  }
+  .conn-status::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: #83786e;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  }
+  .conn-status[data-state="ok"]::before { background: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+  .conn-status[data-state="error"]::before { background: #fb7185; box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.25); }
+  .conn-status[data-state="checking"]::before { background: #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25); }
+
+  .server-state { display: flex; flex-wrap: wrap; gap: 8px; max-width: 1320px; margin: 0 auto; padding: 18px 28px 0; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+    font-size: 12.5px; color: var(--text-2); box-shadow: var(--shadow);
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+  .conn-help { max-width: 1320px; margin: 12px auto 0; padding: 0 28px; }
+
+  .tabs {
+    display: flex; gap: 4px; max-width: 1320px; margin: 16px auto 0; padding: 0 28px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    appearance: none; border: 1px solid transparent; background: none; padding: 8px 14px;
+    border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--text-2);
+    cursor: pointer; white-space: nowrap; transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .tab:hover { color: var(--text); background: var(--surface-2); }
+  .tab[aria-selected="true"] {
+    color: #fff; background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 4px 12px -4px rgba(6, 78, 59, 0.45);
+  }
+  .tab-count {
+    display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px;
+    background: var(--accent-weak); color: var(--text); font-size: 11.5px; font-weight: 700;
+  }
+  .tab[aria-selected="true"] .tab-count { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+  main { max-width: 1320px; margin: 0 auto; padding: 18px 28px 80px; }
+  .panel { display: grid; gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow); min-width: 0; scroll-margin-top: 150px;
+  }
+  .card-head {
+    display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+    gap: 8px 16px; margin-bottom: 16px;
+  }
+  .card-head p { margin-top: 6px; color: var(--text-2); max-width: 760px; }
+  .grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); align-items: start; }
+  .grid-2.tight { gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+  .out:not(:empty) { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .out-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 12px; }
+
+  /* ============================================================
+     CONTROLES
+     ============================================================ */
+  .btn {
+    appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 36px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.ghost { border-color: transparent; background: none; }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn.small { min-height: 30px; padding: 0 10px; font-size: 12.5px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .actions.tight { margin-top: 0; }
+
+  input[type="text"], input[type="search"], select {
+    min-height: 36px; padding: 0 11px; border-radius: 6px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); font: inherit; min-width: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  input[type="text"]:focus, input[type="search"]:focus, select:focus {
+    border-color: var(--series-1); box-shadow: 0 0 0 3px var(--accent-weak); outline: none;
+  }
+  input::placeholder { color: var(--muted); }
+  input.wide { width: 100%; max-width: 520px; }
+  .field-label { display: block; font-weight: 600; font-size: 13px; margin: 16px 0 6px; }
+  .field-label:first-of-type { margin-top: 0; }
+  .field { display: grid; gap: 4px; }
+  .field > span { font-size: 12px; font-weight: 500; color: var(--text-2); }
+  .field.grow { flex: 1 1 260px; }
+  .field.inline { display: inline-flex; align-items: center; gap: 6px; }
+  .field.inline > span { font-size: 13px; }
+
+  .file-pick {
+    position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px;
+    padding: 10px 14px; border: 1.5px dashed var(--border-strong); border-radius: 10px;
+    background: var(--surface-2); transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .file-pick.big { min-height: 84px; }
+  .file-pick:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .file-pick:hover, .file-pick.dragging { border-color: var(--series-1); background: var(--accent-weak); }
+  .file-pick.has-file { border-style: solid; border-color: var(--series-1); }
+  .file-pick input[type="file"] {
+    position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+  }
+  .file-cta {
+    flex: none; padding: 6px 12px; border-radius: 6px; background: var(--accent); color: #fff;
+    border: 1px solid var(--accent); font-weight: 600; font-size: 12.5px;
+  }
+  .file-name { color: var(--text-2); overflow-wrap: anywhere; }
+  .file-pick.has-file .file-name { color: var(--text); font-weight: 600; }
+  .file-clear {
+    position: relative; z-index: 2; margin-left: auto; flex: none; width: 28px; height: 28px;
+    border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text); font-size: 16px; line-height: 1; cursor: pointer;
+  }
+  .file-clear:hover { color: var(--critical); border-color: var(--critical-line); }
+
+  fieldset.options { border: 0; padding: 0; margin: 18px 0 0; display: grid; gap: 8px; }
+  fieldset.options legend { font-weight: 600; font-size: 13px; margin-bottom: 8px; padding: 0; }
+  .radio, .check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  fieldset.options .radio, fieldset.options .check {
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  fieldset.options .radio:hover, fieldset.options .check:hover { border-color: var(--border-strong); }
+  fieldset.options .radio:has(input:checked), fieldset.options .check:has(input:checked) {
+    border-color: var(--series-1); background: var(--accent-weak);
+  }
+  .radio input, .check input { margin-top: 3px; accent-color: var(--series-1); }
+  .radio small, .check small { display: block; color: var(--text-2); font-size: 12.5px; }
+  .check.inline { align-items: center; align-self: center; }
+  .check.inline input { margin-top: 0; }
+  details.advanced { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; background: var(--surface-2); }
+  details.advanced summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+  details.advanced[open] summary { margin-bottom: 8px; }
+  details.raw { margin-top: 12px; }
+  details.raw summary { cursor: pointer; color: var(--link); font-size: 13px; font-weight: 600; }
+  details.raw[open] summary { margin-bottom: 8px; }
+
+  /* ============================================================
+     ALERTAS, ESTADOS E INDICADORES
+     ============================================================ */
+  .alert { border-radius: 10px; padding: 12px 16px; border: 1px solid var(--border); background: var(--surface-2); }
+  .alert + .alert { margin-top: 10px; }
+  .alert-error { border-color: var(--critical-line); background: var(--critical-weak); }
+  .alert-warning { border-color: var(--warning-line); background: var(--warning-weak); }
+  .alert-title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 4px; }
+  .alert .code { font: 12px var(--mono); color: var(--text-2); font-weight: 400; }
+  .alert .table-wrap { margin-top: 10px; }
+
+  .loading { display: flex; align-items: center; gap: 10px; color: var(--text-2); }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--track);
+    border-top-color: var(--series-1); animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .status-dot {
+    display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px;
+    border-radius: 50%; font-size: 10px; font-weight: 800; line-height: 1; color: #fff;
+    background: var(--muted);
+  }
+  .status-dot.good { background: var(--good); }
+  .status-dot.critical { background: var(--critical); }
+  .status-dot.warning { background: var(--warning); color: #120c07; }
+  .status-dot.accent { background: var(--series-1); }
+  .status-dot.neutral { background: var(--surface-3); color: var(--text-2); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2);
+    font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap;
+  }
+  .method {
+    display: inline-block; min-width: 44px; text-align: center; padding: 1px 6px; border-radius: 4px;
+    border: 1px solid var(--border-strong); background: var(--surface-2); font: 600 11px var(--mono);
+  }
+
+  .mini-kpis { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 14px; }
+  .mini-kpis div { display: grid; }
+  .mini-kpis span { font-size: 12px; color: var(--text-2); }
+  .mini-kpis b { font: 700 16px var(--display); letter-spacing: -0.01em; }
+  .kv-line { margin-top: 12px; font-size: 13px; }
+  .kv-line span { color: var(--text-2); margin-right: 6px; }
+
+  .hero {
+    padding: 22px 24px; margin-bottom: 20px; border-radius: 12px; border: 0;
+    background: var(--hero-bg); color: var(--hero-text); box-shadow: var(--shadow-lg);
+  }
+  .hero-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hero-text-2); }
+  .hero-value {
+    font-family: var(--display); font-size: clamp(34px, 6vw, 54px); font-weight: 700;
+    letter-spacing: -0.03em; line-height: 1.1; margin: 6px 0 6px; overflow-wrap: anywhere;
+  }
+  .hero-sub { color: var(--hero-text-2); font-size: 13px; }
+  .kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); }
+  .kpis + .kpis { margin-top: 12px; }
+  .kpi { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface-2); }
+  .kpi-label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+  .kpi-value { font: 700 23px/1.2 var(--display); margin-top: 6px; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 12px; color: var(--text-2); }
+
+  .results-meta { margin-bottom: 18px; }
+  dl.meta { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; font-size: 13px; }
+  dl.meta div { display: flex; gap: 6px; }
+  dl.meta dt { color: var(--text-2); }
+  dl.meta dt::after { content: ":"; }
+  dl.meta dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+  /* ============================================================
+     GRÁFICOS (barras horizontais e barra de proporção)
+     ============================================================ */
+  .chart-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; margin: 4px 0 14px; }
+  .bars { display: grid; gap: 2px; }
+  .bar-row {
+    display: grid; grid-template-columns: minmax(150px, 34%) 1fr; align-items: center; gap: 12px;
+    padding: 6px 8px; border-radius: 8px; outline-offset: 0; transition: background-color 0.15s ease;
+  }
+  .bar-row.clickable { cursor: pointer; }
+  .bar-row:hover, .bar-row:focus-visible { background: var(--surface-2); }
+  .bar-row.selected { background: var(--accent-weak); box-shadow: inset 3px 0 0 var(--series-1); }
+  .bar-label { display: grid; min-width: 0; }
+  .bar-label span { font-weight: 600; }
+  .bar-label code { color: var(--text-2); font-size: 11px; overflow-wrap: anywhere; }
+  .bar-plot { display: flex; align-items: center; min-height: 26px; border-left: 1px solid var(--baseline); }
+  .bar-fill {
+    height: 14px; min-width: 2px; border-radius: 0 4px 4px 0;
+    background: linear-gradient(90deg, var(--accent), var(--series-1));
+    width: calc((100% - 84px) * var(--w));
+  }
+  .bar-value { margin-left: 8px; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 560px) { .bar-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .split-title { font-size: 13px; font-weight: 600; color: var(--text-2); margin-top: 20px; }
+  .split { display: flex; gap: 2px; height: 24px; margin: 8px 0 10px; }
+  .split-seg {
+    flex: 1 1 0; min-width: 3px; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .split-seg:first-child { border-radius: 4px 0 0 4px; }
+  .split-seg:last-child { border-radius: 0 4px 4px 0; }
+  .split-seg:only-child { border-radius: 4px; }
+  .split-seg.good { background: var(--good); }
+  .split-seg.critical { background: var(--critical); }
+  .split-seg.warning { background: var(--warning); color: #120c07; }
+  .split-seg.no-label .split-label { display: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 20px; list-style: none; padding: 0; margin: 0; font-size: 13px; }
+  .legend li { display: inline-flex; align-items: center; gap: 6px; }
+
+  .tooltip {
+    position: fixed; z-index: 80; pointer-events: none; max-width: 320px; padding: 8px 11px;
+    border-radius: 6px; background: var(--tooltip-bg); color: var(--tooltip-text);
+    font-size: 12.5px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); display: grid; gap: 1px;
+  }
+  .tooltip strong { font-size: 13.5px; }
+
+  /* ============================================================
+     PROGRESSO DO JOB
+     ============================================================ */
+  .progress-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .progress-head code { font-size: 12.5px; color: var(--text-2); overflow-wrap: anywhere; }
+  .progress-pct { font: 700 34px/1.1 var(--display); letter-spacing: -0.03em; }
+  .meter { height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; margin: 8px 0 10px; }
+  .meter-fill {
+    height: 100%; width: 0; border-radius: 999px; transition: width 0.25s ease;
+    background: linear-gradient(90deg, var(--accent), var(--series-1));
+  }
+  .meter.indeterminate .meter-fill { width: 30%; animation: slide 1.3s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-110%); } to { transform: translateX(360%); } }
+  .progress-desc { font-weight: 600; }
+  .progress-counts, .progress-timing { color: var(--text-2); font-size: 13px; }
+  .steps { list-style: none; padding: 0; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .step {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; color: var(--text-2);
+  }
+  .step.active { border-color: var(--series-1); background: var(--accent-weak); color: var(--text); font-weight: 600; }
+  .step.done { color: var(--text); }
+  .progress-out:not(:empty) { margin-top: 12px; }
+
+  /* ============================================================
+     TABELAS
+     ============================================================ */
+  .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; max-height: 72vh; background: var(--surface); }
+  .table-wrap.compact { max-height: 420px; }
+  .table-wrap.free { max-height: none; }
+  .table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .table th {
+    position: sticky; top: 0; z-index: 1; background: var(--surface-2); text-align: left;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-2); padding: 10px 12px; border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .table tbody tr:last-child td { border-bottom: 0; }
+  .table tbody tr:hover > td { background: var(--accent-weak); }
+  .table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .table th.num { text-align: right; }
+  .table .strong { font-weight: 700; }
+  .table td.empty { text-align: center; color: var(--text-2); padding: 32px 10px; }
+  .table tr.clickable { cursor: pointer; }
+  .table tr.selected > td { background: var(--accent-weak); }
+  .cell-main { font-weight: 600; }
+  .cell-sub { display: block; color: var(--text-2); font-size: 11.5px; }
+  .table code, .cell-sub.mono { white-space: nowrap; }
+  .col-client { min-width: 190px; }
+  .th-sort {
+    appearance: none; border: 0; background: none; padding: 0; font: inherit; color: inherit;
+    letter-spacing: inherit; text-transform: inherit;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .th-sort:hover { color: var(--text); }
+  .th-sort .arrow { font-size: 10px; opacity: 0.5; }
+  th[aria-sort="ascending"], th[aria-sort="descending"] { color: var(--text); }
+  th[aria-sort="ascending"] .arrow, th[aria-sort="descending"] .arrow { opacity: 1; color: var(--series-1); }
+  .col-expand { width: 40px; }
+  .expand {
+    width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); cursor: pointer; font-size: 12px;
+  }
+  .expand:hover, .expand[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .motive {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    max-width: 380px; min-width: 200px; color: var(--text-2);
+  }
+  .more { font-size: 12px; font-weight: 600; color: var(--link); }
+  .detail-row > td { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--series-1); }
+  .table tbody tr.detail-row:hover > td { background: var(--surface-2); }
+  .detail { display: grid; gap: 16px; padding: 8px 4px 10px; max-width: 1100px; }
+  .detail-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+  dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; }
+  dl.kv dt { color: var(--text-2); }
+  dl.kv dd { margin: 0; overflow-wrap: anywhere; }
+  .reasons { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  dl.params { margin: 0; display: grid; gap: 2px; }
+  dl.params div { display: flex; flex-wrap: wrap; gap: 0 6px; }
+  dl.params dt { color: var(--text-2); }
+  dl.params dt::after { content: ":"; }
+  dl.params dd { margin: 0; font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+
+  .filters {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; margin-bottom: 14px;
+    padding: 12px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);
+  }
+  .table-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
+  .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+  pre.json {
+    margin: 0; max-height: 440px; overflow: auto; padding: 14px; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--border); font: 12px/1.6 var(--mono);
+    white-space: pre; color: var(--text);
+  }
+  .empty-state { text-align: center; padding: 56px 20px; }
+  .empty-state h2 { font-size: 20px; }
+  .empty-state p { color: var(--text-2); margin-top: 8px; }
+
+  .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 90; display: grid; gap: 8px; max-width: min(420px, calc(100vw - 32px)); }
+  .toast {
+    padding: 11px 16px; border-radius: 8px; background: var(--tooltip-bg); color: var(--tooltip-text);
+    border-left: 3px solid var(--series-1);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22); font-size: 13.5px; transition: opacity 0.3s ease;
+  }
+  .toast-error { background: var(--critical); color: #fff; border-left-color: rgba(255, 255, 255, 0.5); }
+  .toast.leaving { opacity: 0; }
+
+  @media (max-width: 700px) {
+    .topbar, .server-state, .tabs, .conn-help { padding-left: 16px; padding-right: 16px; }
+    main { padding: 16px 16px 64px; }
+    .card { padding: 16px; }
+    .hero { padding: 18px; }
+    .conn input { width: 100%; }
+    .conn { width: 100%; }
+    .kpi { padding: 10px 12px; }
+    .kpi-value { font-size: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">A</span>
+    <div><strong>Antecipe</strong><small>Painel de testes da API</small></div>
+  </div>
+  <form class="conn" id="connForm" autocomplete="off">
+    <label for="apiBase">Endereço da API</label>
+    <input id="apiBase" type="text" inputmode="url" spellcheck="false" placeholder="http://127.0.0.1:8000">
+    <button class="btn" type="submit">Conectar</button>
+    <span class="conn-status" id="connStatus" data-state="idle" role="status">Não verificado</span>
+  </form>
+  <button class="btn ghost small" id="themeBtn" type="button">Tema: automático</button>
+</header>
+
+<div class="server-state" aria-label="Estado do servidor">
+  <span class="chip" id="chipRules"></span>
+  <span class="chip" id="chipSit"></span>
+  <span class="chip" id="chipResult"></span>
+</div>
+<div class="conn-help" id="connHelp" hidden></div>
+
+<nav class="tabs" role="tablist" aria-label="Seções do painel">
+  <button class="tab" role="tab" type="button" id="tabbtn-config" data-tab="config" aria-controls="tab-config" aria-selected="true">1. Configuração</button>
+  <button class="tab" role="tab" type="button" id="tabbtn-lote" data-tab="lote" aria-controls="tab-lote" aria-selected="false" tabindex="-1">2. Lote de notas</button>
+  <button class="tab" role="tab" type="button" id="tabbtn-resultados" data-tab="resultados" aria-controls="tab-resultados" aria-selected="false" tabindex="-1">3. Resultados<span class="tab-count" id="resultsCount" hidden></span></button>
+  <button class="tab" role="tab" type="button" id="tabbtn-duplicidade" data-tab="duplicidade" aria-controls="tab-duplicidade" aria-selected="false" tabindex="-1">4. Duplicidade</button>
+  <button class="tab" role="tab" type="button" id="tabbtn-jobs" data-tab="jobs" aria-controls="tab-jobs" aria-selected="false" tabindex="-1">5. Jobs</button>
+  <button class="tab" role="tab" type="button" id="tabbtn-log" data-tab="log" aria-controls="tab-log" aria-selected="false" tabindex="-1">6. Log da API</button>
+</nav>
+
+<main id="main">
+
+  <!-- ======================================================= -->
+  <!-- 1. CONFIGURAÇÃO                                          -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-config" aria-labelledby="tabbtn-config">
+    <div class="grid-2">
+      <article class="card">
+        <div class="card-head"><div>
+          <h2>Regras do fundo</h2>
+          <p>Envie o <code>validadores_antecipe.json</code>. As regras ficam carregadas no servidor e valem para as próximas avaliações.</p>
+        </div></div>
+        <label class="field-label" for="rulesFile">Arquivo de regras (JSON)</label>
+        <div class="file-pick">
+          <input type="file" id="rulesFile" accept=".json,application/json">
+          <span class="file-cta" aria-hidden="true">Escolher arquivo</span>
+          <span class="file-name" data-empty="Nenhum arquivo · clique ou arraste aqui"></span>
+          <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+        </div>
+        <div class="actions">
+          <button class="btn primary" type="button" id="btnRulesUpload">Enviar regras</button>
+          <button class="btn" type="button" id="btnRulesGet">Ver regras carregadas</button>
+        </div>
+        <p class="endpoint">POST /upload-rules · GET /rules</p>
+        <div class="out" id="rulesOut"></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><div>
+          <h2>Base de situação cadastral</h2>
+          <p>Envie o <code>cnpj_situacao_mock.csv</code> (colunas <code>DOC;SITUACAO_CADASTRAL</code>). A base fica salva no servidor, inclusive depois de reiniciá-lo.</p>
+        </div></div>
+        <label class="field-label" for="sitFile">Base de situação (CSV)</label>
+        <div class="file-pick">
+          <input type="file" id="sitFile" accept=".csv,text/csv">
+          <span class="file-cta" aria-hidden="true">Escolher arquivo</span>
+          <span class="file-name" data-empty="Nenhum arquivo · clique ou arraste aqui"></span>
+          <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+        </div>
+        <div class="actions">
+          <button class="btn primary" type="button" id="btnSitUpload">Enviar base</button>
+          <button class="btn" type="button" id="btnSitGet">Consultar base carregada</button>
+        </div>
+        <p class="endpoint">POST /upload-situacoes · GET /situacoes</p>
+        <div class="out" id="sitOut"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- 2. LOTE DE NOTAS                                         -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-lote" aria-labelledby="tabbtn-lote" hidden>
+    <article class="card">
+      <div class="card-head"><div>
+        <h2>Lote de notas</h2>
+        <p>CSV com separador <code>;</code>, decimal com vírgula e datas <code>dd/mm/aaaa</code>, em UTF-8, com cabeçalho na primeira linha.</p>
+      </div></div>
+
+      <label class="field-label" for="notesFile">Arquivo de notas (CSV)</label>
+      <div class="file-pick big">
+        <input type="file" id="notesFile" accept=".csv,text/csv">
+        <span class="file-cta" aria-hidden="true">Escolher arquivo</span>
+        <span class="file-name" data-empty="Nenhum arquivo · clique ou arraste o CSV aqui"></span>
+        <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+      </div>
+
+      <fieldset class="options">
+        <legend>Como processar</legend>
+        <label class="radio">
+          <input type="radio" name="mode" value="job" checked>
+          <span><b>Com barra de progresso</b><small>Cria um job e acompanha o andamento em tempo real · POST /avaliar-recebiveis/jobs</small></span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="mode" value="direto">
+          <span><b>Direto</b><small>Uma única chamada que devolve o resultado no fim · POST /avaliar-recebiveis</small></span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="optDetails">
+          <span><b>Incluir detalhes técnicos de cada regra</b><small>Envia detalhes=true. A resposta fica bem maior: use em lotes pequenos, como o CSV de teste.</small></span>
+        </label>
+      </fieldset>
+
+      <details class="advanced" id="jobFiles">
+        <summary>Arquivos só para este job (opcional)</summary>
+        <p class="hint">Valem apenas para este processamento e não substituem os carregados no servidor. Só funcionam no modo com barra de progresso.</p>
+        <div class="grid-2 tight">
+          <div>
+            <label class="field-label" for="jobRulesFile">Regras (JSON)</label>
+            <div class="file-pick">
+              <input type="file" id="jobRulesFile" accept=".json,application/json">
+              <span class="file-cta" aria-hidden="true">Escolher</span>
+              <span class="file-name" data-empty="Usar as regras do servidor"></span>
+              <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="jobSitFile">Base de situação (CSV)</label>
+            <div class="file-pick">
+              <input type="file" id="jobSitFile" accept=".csv,text/csv">
+              <span class="file-cta" aria-hidden="true">Escolher</span>
+              <span class="file-name" data-empty="Usar a base do servidor"></span>
+              <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnEvaluate">Avaliar notas</button>
+        <button class="btn" type="button" id="btnParse">Só validar a leitura do CSV</button>
+      </div>
+      <p class="endpoint">“Só validar” usa POST /parse-csv: confere formato e tipos sem aplicar as regras.</p>
+    </article>
+
+    <article class="card" id="loteProgress" hidden></article>
+    <article class="card" id="parseOut" hidden></article>
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- 3. RESULTADOS                                            -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-resultados" aria-labelledby="tabbtn-resultados" hidden>
+    <div class="card empty-state" id="resultsEmpty">
+      <h2>Nenhum resultado ainda</h2>
+      <p>Avalie um lote na aba <b>2. Lote de notas</b> ou busque o resultado de um job na aba <b>5. Jobs</b>.</p>
+    </div>
+
+    <div class="panel" id="resultsBody" hidden>
+      <article class="card">
+        <div class="results-meta" id="resultsMeta"></div>
+        <div id="resultsSummary"></div>
+      </article>
+
+      <article class="card">
+        <div class="chart-head">
+          <div>
+            <h2>Notas barradas por regra</h2>
+            <p class="hint">Clique em uma regra para filtrar a tabela. Uma nota pode ser barrada por mais de uma regra.</p>
+          </div>
+          <button class="btn small" type="button" data-toggle-table="rulesChart" aria-pressed="false">Ver como tabela</button>
+        </div>
+        <div id="rulesChart"></div>
+        <div id="rulesChartTable" hidden></div>
+      </article>
+
+      <article class="card" id="notesCard">
+        <div class="card-head">
+          <div>
+            <h2>Notas</h2>
+            <p>Status de cada nota, motivo da recusa e valor líquido das aprovadas. Clique em uma linha para ver os detalhes.</p>
+          </div>
+          <div class="actions tight">
+            <button class="btn small" type="button" id="btnExportCsv">Baixar CSV (filtro atual)</button>
+            <button class="btn small" type="button" id="btnExportGab">Baixar no formato do gabarito</button>
+            <button class="btn small" type="button" id="btnExportJson">Baixar JSON completo</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label class="field grow"><span>Buscar</span>
+            <input type="search" id="fSearch" placeholder="Nota, cliente, CNPJ, empresa vendedora…">
+          </label>
+          <label class="field"><span>Status</span>
+            <select id="fStatus">
+              <option value="">Todos</option>
+              <option value="APROVADO">Aprovadas</option>
+              <option value="BARRADO">Barradas</option>
+              <option value="PENDENTE">Pendentes</option>
+            </select>
+          </label>
+          <label class="field"><span>Barrada pela regra</span>
+            <select id="fRule"><option value="">Qualquer regra</option></select>
+          </label>
+          <button class="btn small" type="button" id="btnClearFilters">Limpar filtros</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table notes">
+            <thead id="notesHead"></thead>
+            <tbody id="notesBody"></tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span id="notesCount" aria-live="polite"></span>
+          <div class="pager">
+            <label class="field inline"><span>Por página</span>
+              <select id="fPageSize">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="500">500</option>
+              </select>
+            </label>
+            <button class="btn small" type="button" id="pgFirst" aria-label="Primeira página">«</button>
+            <button class="btn small" type="button" id="pgPrev">‹ Anterior</button>
+            <span id="pgInfo"></span>
+            <button class="btn small" type="button" id="pgNext">Próxima ›</button>
+            <button class="btn small" type="button" id="pgLast" aria-label="Última página">»</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <article class="card" id="compareCard">
+      <div class="card-head"><div>
+        <h2>Comparar com o resultado esperado</h2>
+        <p>Envie o <code>resultado_esperado_100k.json</code>, um arquivo baixado em “formato do gabarito” ou um JSON completo baixado deste painel. A comparação é feita no navegador, linha a linha, pelo status e pelas regras que barraram.</p>
+      </div></div>
+      <label class="field-label" for="expectedFile">Arquivo esperado (JSON)</label>
+      <div class="file-pick">
+        <input type="file" id="expectedFile" accept=".json,application/json">
+        <span class="file-cta" aria-hidden="true">Escolher arquivo</span>
+        <span class="file-name" data-empty="Nenhum arquivo · clique ou arraste aqui"></span>
+        <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnCompare">Comparar</button>
+        <button class="btn" type="button" id="btnCompareClear">Limpar comparação</button>
+      </div>
+      <div class="out" id="compareOut"></div>
+    </article>
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- 4. DUPLICIDADE                                           -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-duplicidade" aria-labelledby="tabbtn-duplicidade" hidden>
+    <article class="card">
+      <div class="card-head"><div>
+        <h2>Teste de duplicidade</h2>
+        <p>Procura notas repetidas dentro do arquivo e em relação ao histórico de testes salvo no servidor (<code>recebiveis_teste.pkl</code>). A chave é CNPJ do cedente + CNPJ do sacado + número da nota + tipo.</p>
+      </div></div>
+      <div class="alert alert-warning">
+        <div class="alert-title"><span class="status-dot warning" aria-hidden="true">!</span>Cada execução grava as chaves novas no histórico</div>
+        <p>Rodar o mesmo arquivo duas vezes faz todas as notas aparecerem como já vistas. Para recomeçar do zero, apague o <code>recebiveis_teste.pkl</code> na pasta do servidor.</p>
+      </div>
+      <label class="field-label" for="dupFile" style="margin-top:14px">Arquivo de notas (CSV)</label>
+      <div class="file-pick">
+        <input type="file" id="dupFile" accept=".csv,text/csv">
+        <span class="file-cta" aria-hidden="true">Escolher arquivo</span>
+        <span class="file-name" data-empty="Usar o CSV escolhido na aba Lote de notas"></span>
+        <button type="button" class="file-clear" aria-label="Remover arquivo escolhido" hidden>×</button>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnDup">Testar duplicidade</button>
+      </div>
+      <p class="endpoint">POST /test-duplicates</p>
+    </article>
+    <div id="dupOut" class="panel"></div>
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- 5. JOBS                                                  -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-jobs" aria-labelledby="tabbtn-jobs" hidden>
+    <article class="card">
+      <div class="card-head"><div>
+        <h2>Consultar um job</h2>
+        <p>Use o código devolvido por POST /avaliar-recebiveis/jobs. Os jobs ficam na memória do servidor por 1 hora depois de terminar e somem quando ele reinicia.</p>
+      </div></div>
+      <label class="field-label" for="jobIdInput">Código do job</label>
+      <input id="jobIdInput" type="text" class="mono wide" spellcheck="false" placeholder="ex.: f1e3777c2c9f489abc3d7984cf475b60">
+      <div class="actions">
+        <button class="btn" type="button" id="btnJobStatus">Ver status</button>
+        <button class="btn" type="button" id="btnJobTrack">Acompanhar progresso</button>
+        <button class="btn primary" type="button" id="btnJobResult">Buscar resultado</button>
+      </div>
+      <p class="endpoint">GET /jobs/{job_id} · GET /jobs/{job_id}/progresso (SSE) · GET /jobs/{job_id}/resultado</p>
+      <div class="out" id="jobOut"></div>
+    </article>
+    <article class="card" id="jobProgress" hidden></article>
+    <article class="card">
+      <div class="card-head"><div>
+        <h2>Jobs desta sessão</h2>
+        <p>Criados por este navegador desde que a página foi aberta.</p>
+      </div></div>
+      <div class="table-wrap compact">
+        <table class="table">
+          <thead><tr><th>Código</th><th>Criado às</th><th>Arquivo</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="sessionJobsBody"></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- 6. LOG DA API                                            -->
+  <!-- ======================================================= -->
+  <section class="panel" role="tabpanel" id="tab-log" aria-labelledby="tabbtn-log" hidden>
+    <article class="card">
+      <div class="card-head"><div>
+        <h2>Cobertura dos endpoints</h2>
+        <p>Quais rotas da API já foram chamadas nesta sessão do navegador e com qual resultado.</p>
+      </div></div>
+      <div class="table-wrap free">
+        <table class="table">
+          <thead><tr><th>Método</th><th>Rota</th><th>Para quê</th><th class="num">Chamadas</th><th>Último status</th><th>Última vez</th></tr></thead>
+          <tbody id="coverageBody"></tbody>
+        </table>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <h2>Requisições</h2>
+          <p>As últimas 200 chamadas, da mais recente para a mais antiga. Clique em uma linha para ver uma prévia da resposta.</p>
+        </div>
+        <button class="btn small" type="button" id="btnLogClear">Limpar</button>
+      </div>
+      <div class="table-wrap compact">
+        <table class="table">
+          <thead><tr><th>Hora</th><th>Método</th><th>Rota</th><th>Status</th><th class="num">Duração</th><th class="num">Tamanho</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <h3 style="margin:16px 0 8px">Prévia da resposta</h3>
+      <pre class="json" id="logPreview">Selecione uma requisição.</pre>
+    </article>
+  </section>
+</main>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ============================================================
+     CONSTANTES
+     ============================================================ */
+
+  const DEFAULT_API = 'http://127.0.0.1:8000';
+  const PREVIEW_ROWS = 200;
+  const LOG_LIMIT = 200;
+
+  const RULE_NAMES = {
+    CNPJ_SACADO_VALIDO: 'CNPJ do cliente válido',
+    SITUACAO_CADASTRAL_SACADO: 'Situação cadastral do cliente',
+    TIPO_RECEBIVEL: 'Tipo de nota aceito',
+    VALOR_MINIMO: 'Valor mínimo',
+    NAO_VENCIDA: 'Nota não vencida',
+    PRAZO_MAXIMO: 'Prazo máximo',
+    CONCENTRACAO_MAXIMA_SACADO: 'Concentração máxima por cliente',
+    PRAZO_MINIMO: 'Prazo mínimo',
+    CONCENTRACAO_MAXIMA_CEDENTE: 'Concentração máxima por empresa vendedora',
+  };
+
+  const STAGE_NAMES = {
+    regras: 'Regras (JSON)',
+    situacoes: 'Base de situação',
+    csv: 'Leitura do CSV',
+    avaliacao: 'Motor de regras',
+  };
+
+  const STATUS_META = {
+    APROVADO: { label: 'Aprovada', plural: 'Aprovadas', icon: '✓', cls: 'good' },
+    BARRADO: { label: 'Barrada', plural: 'Barradas', icon: '✕', cls: 'critical' },
+    PENDENTE: { label: 'Pendente', plural: 'Pendentes', icon: '!', cls: 'warning' },
+  };
+
+  const RULE_RESULT_META = {
+    APROVADA: { label: 'Atendida', icon: '✓', cls: 'good' },
+    REPROVADA: { label: 'Barrou a nota', icon: '✕', cls: 'critical' },
+    NAO_VERIFICAVEL: { label: 'Não verificável', icon: '!', cls: 'warning' },
+    IGNORADA: { label: 'Desativada', icon: '–', cls: 'neutral' },
+  };
+
+  const JOB_STATUS_META = {
+    na_fila: { label: 'Na fila', icon: '…', cls: 'neutral' },
+    processando: { label: 'Processando', icon: '●', cls: 'accent' },
+    concluido: { label: 'Concluído', icon: '✓', cls: 'good' },
+    erro: { label: 'Erro', icon: '✕', cls: 'critical' },
+    parado: { label: 'Não acompanhado', icon: '–', cls: 'neutral' },
+  };
+
+  const ENDPOINTS = [
+    { method: 'GET', path: '/health', what: 'Testar a conexão' },
+    { method: 'POST', path: '/upload-rules', what: 'Enviar regras (JSON)' },
+    { method: 'GET', path: '/rules', what: 'Consultar regras' },
+    { method: 'POST', path: '/upload-situacoes', what: 'Enviar base de situação' },
+    { method: 'GET', path: '/situacoes', what: 'Consultar base de situação' },
+    { method: 'POST', path: '/parse-csv', what: 'Validar a leitura do CSV' },
+    { method: 'POST', path: '/avaliar-recebiveis', what: 'Avaliação direta' },
+    { method: 'POST', path: '/avaliar-recebiveis/jobs', what: 'Criar job' },
+    { method: 'GET', path: '/jobs/{job_id}', what: 'Status do job' },
+    { method: 'SSE', path: '/jobs/{job_id}/progresso', what: 'Progresso em tempo real' },
+    { method: 'GET', path: '/jobs/{job_id}/resultado', what: 'Resultado do job' },
+    { method: 'POST', path: '/test-duplicates', what: 'Teste de duplicidade' },
+  ];
+
+  const COLLATOR = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+
+  /* ============================================================
+     ESTADO
+     ============================================================ */
+
+  const state = {
+    apiBase: '',
+    connected: null, // null = verificando · true · false
+    rulesInfo: null,
+    sitInfo: null,
+    result: null,
+    resultMeta: null,
+    notes: [],
+    index: [],
+    filtered: [],
+    page: 1,
+    pageSize: 50,
+    sort: { key: 'linha', dir: 1 },
+    filters: { q: '', status: '', rule: '' },
+    expanded: new Set(),
+    expected: null,
+    expectedName: '',
+    comparison: null,
+    job: null,
+    sessionJobs: [],
+    log: [],
+    logSeq: 0,
+    logDirty: false,
+    selectedLog: null,
+    coverage: new Map(),
+  };
+
+  /* ============================================================
+     UTILITÁRIOS
+     ============================================================ */
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ESCAPES[ch]);
+
+  const fmtInt = (n) => (Number(n) || 0).toLocaleString('pt-BR');
+  const fmtNum1 = (n) => (Number(n) || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+
+  /* Dinheiro sempre em centavos inteiros: nada de float. */
+  function brl(cents) {
+    if (typeof cents !== 'number' || !Number.isFinite(cents)) return '—';
+    const negative = cents < 0;
+    const abs = Math.abs(Math.trunc(cents));
+    const rest = abs % 100;
+    const reais = (abs - rest) / 100;
+    return `${negative ? '−' : ''}R$ ${reais.toLocaleString('pt-BR')},${String(rest).padStart(2, '0')}`;
+  }
+
+  const centsOf = (m) => (m && typeof m.centavos === 'number' ? m.centavos : null);
+  const money = (m) => brl(centsOf(m));
+
+  function fmtDate(iso) {
+    const parts = String(iso ?? '').split('-');
+    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : String(iso ?? '—');
+  }
+
+  const fmtPct = (part, total) => (total ? `${fmtNum1((part * 100) / total)}%` : '0%');
+
+  function fmtBytes(n) {
+    if (n < 1024) return `${n} B`;
+    if (n < 1048576) return `${fmtNum1(n / 1024)} KB`;
+    return `${fmtNum1(n / 1048576)} MB`;
+  }
+
+  const fmtMs = (ms) => (ms < 1000 ? `${Math.round(ms)} ms` : `${fmtNum1(ms / 1000)} s`);
+
+  function fmtDuration(ms) {
+    const s = Math.max(0, Math.round(ms / 1000));
+    if (s < 60) return `${s} s`;
+    return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')} s`;
+  }
+
+  const digits = (v) => String(v ?? '').replace(/\D/g, '');
+  const ruleName = (code) => RULE_NAMES[code] || code;
+  const timeNow = () => new Date().toLocaleTimeString('pt-BR');
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function storageGet(key) {
+    try { return window.localStorage.getItem(key); } catch { return null; }
+  }
+
+  function storageSet(key, value) {
+    try {
+      if (value === null) window.localStorage.removeItem(key);
+      else window.localStorage.setItem(key, value);
+    } catch { /* navegador sem armazenamento: segue sem lembrar */ }
+  }
+
+  function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  function stamp() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+
+  function fundoName(f) {
+    if (!f) return '—';
+    if (typeof f === 'object') return f.nome || f.name || JSON.stringify(f);
+    return String(f);
+  }
+
+  function fundoFull(f) {
+    if (f && typeof f === 'object') {
+      return [f.nome, f.cnpj].filter(Boolean).join(' · ') || JSON.stringify(f);
+    }
+    return fundoName(f);
+  }
+
+  function pricingText(p) {
+    if (!p || typeof p !== 'object') return 'Não configurada';
+    const parts = [];
+    if (p.metodo) parts.push(p.metodo === 'DESCONTO_SIMPLES' ? 'Desconto simples' : String(p.metodo));
+    if (p.taxa_mensal_percentual != null) parts.push(`${String(p.taxa_mensal_percentual).replace('.', ',')}% ao mês`);
+    if (p.base_dias != null) parts.push(`base de ${p.base_dias} dias`);
+    return parts.join(' · ') || JSON.stringify(p);
+  }
+
+  function statusDot(cls, icon) {
+    return `<span class="status-dot ${cls}" aria-hidden="true">${esc(icon)}</span>`;
+  }
+
+  function badge(meta) {
+    return `<span class="badge">${statusDot(meta.cls, meta.icon)}${esc(meta.label)}</span>`;
+  }
+
+  const statusBadge = (status) => badge(STATUS_META[status] || { label: status || '—', icon: '?', cls: 'neutral' });
+
+  function displayValue(v) {
+    if (v === null || v === undefined) return '—';
+    if (typeof v === 'boolean') return v ? 'sim' : 'não';
+    if (Array.isArray(v)) return v.map(displayValue).join(', ');
+    if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  }
+
+  function paramsHtml(params) {
+    const entries = Object.entries(params || {});
+    if (!entries.length) return '<span class="muted">sem parâmetros</span>';
+    return `<dl class="params">${entries.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(displayValue(v))}</dd></div>`).join('')}</dl>`;
+  }
+
+  /* scroll=false: tabelas curtas crescem com o conteúdo, sem
+     barra de rolagem interna. */
+  function simpleTable(headers, rows, numeric = [], { scroll = true } = {}) {
+    const head = headers.map((h, i) => `<th class="${numeric[i] ? 'num' : ''}">${esc(h)}</th>`).join('');
+    const body = rows.map((cells) => `<tr>${cells.map((c, i) => `<td class="${numeric[i] ? 'num' : ''}">${c}</td>`).join('')}</tr>`).join('');
+    return `<div class="table-wrap ${scroll ? 'compact' : 'free'}"><table class="table"><thead><tr>${head}</tr></thead><tbody>${body || `<tr><td class="empty" colspan="${headers.length}">Sem dados.</td></tr>`}</tbody></table></div>`;
+  }
+
+  function loadingHtml(text) {
+    return `<div class="loading" role="status"><span class="spinner" aria-hidden="true"></span>${esc(text)}</div>`;
+  }
+
+  function toast(message, kind = 'info') {
+    const box = $('#toasts');
+    while (box.children.length >= 3) box.firstElementChild.remove();
+    const el = document.createElement('div');
+    el.className = `toast toast-${kind}`;
+    el.textContent = message;
+    box.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('leaving');
+      setTimeout(() => el.remove(), 350);
+    }, kind === 'error' ? 8000 : 4000);
+  }
+
+  async function withBusy(button, label, fn) {
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = label;
+    try {
+      return await fn();
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  function download(name, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }
+
+  /* ============================================================
+     CLIENTE DA API
+     ============================================================ */
+
+  class ApiError extends Error {
+    constructor(message, extra = {}) {
+      super(message);
+      this.name = 'ApiError';
+      Object.assign(this, extra);
+    }
+  }
+
+  function normalizeBase(value) {
+    let v = String(value || '').trim();
+    if (!v) return '';
+    if (!/^https?:\/\//i.test(v)) v = `http://${v}`;
+    return v.replace(/\/+$/, '');
+  }
+
+  function apiUrl(path, query) {
+    const url = new URL(state.apiBase + path);
+    if (query) {
+      for (const [k, v] of Object.entries(query)) {
+        if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+      }
+    }
+    return url;
+  }
+
+  /* Interpreta os três formatos de erro da API: texto, lista de
+     validação do FastAPI e objeto com "mensagem"/"erros". */
+  function describeError(data, status) {
+    const info = { message: `A API respondeu com erro HTTP ${status}.`, rows: null, total: null, note: null };
+    if (data && typeof data === 'object' && 'detail' in data) {
+      const d = data.detail;
+      if (typeof d === 'string') {
+        info.message = d;
+      } else if (Array.isArray(d)) {
+        info.message = `Requisição inválida: ${d.map((e) => `${(e.loc || []).join(' › ')}: ${e.msg}`).join('; ')}`;
+      } else if (d && typeof d === 'object') {
+        info.message = d.mensagem || 'A API recusou a requisição.';
+        if (Array.isArray(d.erros)) {
+          info.rows = d.erros;
+          info.total = d.total_erros ?? d.erros.length;
+        }
+        if (d.observacao) info.note = d.observacao;
+        if (Array.isArray(d.codigos)) info.note = `Códigos: ${d.codigos.join(', ')}`;
+        if (d.progresso && typeof d.progresso === 'object') {
+          info.note = `Status atual: ${d.progresso.status} · ${fmtNum1(d.progresso.percentual)}%`;
+        }
+      }
+    } else if (typeof data === 'string' && data.trim()) {
+      info.message = `${info.message} ${data.trim().slice(0, 300)}`;
+    }
+    return info;
+  }
+
+  /* Prévia leve para o log: listas longas são cortadas, para não
+     guardar respostas de 100 mil notas na memória duas vezes. */
+  function makePreview(data) {
+    if (data === null || data === undefined) return '(resposta vazia)';
+    if (typeof data === 'string') return data.slice(0, 5000);
+    const cut = (list) => (list.length > 20 ? [...list.slice(0, 20), `… mais ${fmtInt(list.length - 20)} itens omitidos na prévia`] : list);
+    if (Array.isArray(data)) return JSON.stringify(cut(data), null, 2);
+    const copy = {};
+    for (const [k, v] of Object.entries(data)) copy[k] = Array.isArray(v) ? cut(v) : v;
+    return JSON.stringify(copy, null, 2);
+  }
+
+  async function api(method, path, { body, query } = {}) {
+    let url;
+    try {
+      url = apiUrl(path, query);
+    } catch {
+      throw new ApiError('Endereço da API inválido. Confira o campo no topo da página.', { network: true });
+    }
+    const display = url.pathname + url.search;
+    const t0 = performance.now();
+    let res;
+    let buffer;
+    try {
+      res = await fetch(url, { method, body });
+      buffer = await res.arrayBuffer();
+    } catch (err) {
+      addLog({ method, path, display, status: 0, ms: performance.now() - t0, size: 0, preview: String(err) });
+      setConn('error', 'Sem conexão');
+      if (state.connected) { state.connected = false; renderServerChips(); }
+      throw new ApiError(
+        `Não foi possível falar com a API em ${state.apiBase}. Verifique se o uvicorn está rodando e se o endereço está correto.`,
+        { network: true },
+      );
+    }
+    const text = new TextDecoder('utf-8').decode(buffer);
+    let data = null;
+    if (text) {
+      try { data = JSON.parse(text); } catch { data = text; }
+    }
+    addLog({ method, path, display, status: res.status, ms: performance.now() - t0, size: buffer.byteLength, preview: makePreview(data) });
+    if (!res.ok) {
+      const info = describeError(data, res.status);
+      throw new ApiError(info.message, { status: res.status, data, info });
+    }
+    return data;
+  }
+
+  function errorBoxHtml(err, title = 'Não foi possível concluir') {
+    const info = err.info || { message: err.message };
+    let html = `<div class="alert alert-error" role="alert">
+      <div class="alert-title">${statusDot('critical', '✕')}<span>${esc(title)}</span>${err.status ? `<span class="code">HTTP ${esc(err.status)}</span>` : ''}</div>
+      <p>${esc(info.message)}</p>`;
+    if (info.rows && info.rows.length) {
+      html += `<p class="hint">${fmtInt(info.total)} erro(s) encontrado(s)${info.rows.length < info.total ? `; a API devolveu os ${fmtInt(info.rows.length)} primeiros` : ''}.</p>`;
+      html += simpleTable(
+        ['Linha', 'Coluna', 'Valor', 'Motivo'],
+        info.rows.map((r) => [
+          esc(r.linha ?? '—'),
+          esc(r.coluna ?? '—'),
+          r.valor === null || r.valor === undefined ? '<span class="muted">—</span>' : `<code>${esc(r.valor)}</code>`,
+          esc(r.motivo),
+        ]),
+        [true, false, false, false],
+      );
+    }
+    if (info.note) html += `<p class="hint">${esc(info.note)}</p>`;
+    return `${html}</div>`;
+  }
+
+  /* ============================================================
+     LOG E COBERTURA
+     ============================================================ */
+
+  function endpointKey(method, path) {
+    return `${method} ${String(path).replace(/^\/jobs\/[^/]+/, '/jobs/{job_id}')}`;
+  }
+
+  function touchCoverage(entry, count) {
+    const key = endpointKey(entry.method, entry.path);
+    const c = state.coverage.get(key) || { count: 0, status: null, time: null };
+    if (count) c.count += 1;
+    c.status = entry.status;
+    c.time = entry.time;
+    state.coverage.set(key, c);
+  }
+
+  function addLog(entry) {
+    const e = { seq: ++state.logSeq, time: timeNow(), ...entry };
+    state.log.unshift(e);
+    if (state.log.length > LOG_LIMIT) state.log.length = LOG_LIMIT;
+    touchCoverage(e, true);
+    scheduleLogRender();
+    return e;
+  }
+
+  function updateLog(entry, patch) {
+    Object.assign(entry, patch);
+    touchCoverage(entry, false);
+    scheduleLogRender();
+  }
+
+  function scheduleLogRender() {
+    if (state.logDirty) return;
+    state.logDirty = true;
+    requestAnimationFrame(() => {
+      state.logDirty = false;
+      if (!$('#tab-log').hidden) renderLog();
+    });
+  }
+
+  function statusCell(status) {
+    if (typeof status === 'number') {
+      const ok = status >= 200 && status < 300;
+      const client = status >= 400 && status < 500;
+      const cls = ok ? 'good' : client ? 'warning' : 'critical';
+      const icon = ok ? '✓' : client ? '!' : '✕';
+      return `<span class="badge">${statusDot(cls, icon)}${status === 0 ? 'falha de rede' : esc(status)}</span>`;
+    }
+    return `<span class="badge">${statusDot('neutral', '…')}${esc(status ?? '—')}</span>`;
+  }
+
+  function renderLog() {
+    $('#coverageBody').innerHTML = ENDPOINTS.map((ep) => {
+      const c = state.coverage.get(`${ep.method} ${ep.path}`);
+      return `<tr>
+        <td><span class="method">${esc(ep.method)}</span></td>
+        <td><code>${esc(ep.path)}</code></td>
+        <td>${esc(ep.what)}</td>
+        <td class="num">${c ? fmtInt(c.count) : '0'}</td>
+        <td>${c ? statusCell(c.status) : '<span class="muted">ainda não chamada</span>'}</td>
+        <td>${c ? esc(c.time) : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    $('#logBody').innerHTML = state.log.length
+      ? state.log.map((e) => `<tr class="clickable${state.selectedLog === e.seq ? ' selected' : ''}" data-log="${e.seq}" tabindex="0">
+          <td>${esc(e.time)}</td>
+          <td><span class="method">${esc(e.method)}</span></td>
+          <td><code>${esc(e.display || e.path)}</code></td>
+          <td>${statusCell(e.status)}</td>
+          <td class="num">${e.ms ? fmtMs(e.ms) : '—'}</td>
+          <td class="num">${e.size ? fmtBytes(e.size) : '—'}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="6" class="empty">Nenhuma requisição ainda.</td></tr>';
+  }
+
+  function selectLog(seq) {
+    const entry = state.log.find((e) => e.seq === seq);
+    if (!entry) return;
+    state.selectedLog = seq;
+    $('#logPreview').textContent = `${entry.method} ${entry.display || entry.path} · ${entry.status === 0 ? 'falha de rede' : entry.status}\n\n${entry.preview || ''}`;
+    renderLog();
+  }
+
+  /* ============================================================
+     CONEXÃO E ESTADO DO SERVIDOR
+     ============================================================ */
+
+  function setConn(kind, text) {
+    const el = $('#connStatus');
+    el.dataset.state = kind;
+    el.textContent = text;
+  }
+
+  async function detectApiBase() {
+    const saved = storageGet('antecipe.apiBase');
+    if (saved) return saved;
+    // Servido pela própria API (http://127.0.0.1:8000/)? Então é a mesma origem.
+    if (location.protocol.startsWith('http')) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 1500);
+        const res = await fetch(`${location.origin}/health`, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && data.status === 'ok') return location.origin;
+        }
+      } catch { /* não é a API: usa o endereço padrão */ }
+    }
+    return DEFAULT_API;
+  }
+
+  async function connect(save) {
+    const base = normalizeBase($('#apiBase').value) || DEFAULT_API;
+    $('#apiBase').value = base;
+    state.apiBase = base;
+    if (save) storageSet('antecipe.apiBase', base);
+    setConn('checking', 'Verificando…');
+    try {
+      const data = await api('GET', '/health');
+      if (!data || data.status !== 'ok') throw new ApiError('A rota /health respondeu, mas não com {"status": "ok"}.');
+      setConn('ok', 'Conectado');
+      state.connected = true;
+      $('#connHelp').hidden = true;
+      await refreshServerState();
+    } catch (err) {
+      setConn('error', 'Sem conexão');
+      state.connected = false;
+      state.rulesInfo = null;
+      state.sitInfo = null;
+      $('#rulesOut').innerHTML = `<p class="muted">${statusDot('neutral', '–')} Sem conexão com a API: o estado das regras no servidor é desconhecido.</p>`;
+      $('#sitOut').innerHTML = `<p class="muted">${statusDot('neutral', '–')} Sem conexão com a API: o estado da base no servidor é desconhecido.</p>`;
+      renderServerChips();
+      const help = $('#connHelp');
+      help.hidden = false;
+      help.innerHTML = `<div class="alert alert-error" role="alert">
+        <div class="alert-title">${statusDot('critical', '✕')}<span>Não foi possível conectar à API</span></div>
+        <p>${esc(err.message)}</p>
+        <p class="hint">Confira se o servidor está rodando (<code>uvicorn main:app --reload</code>) e se o endereço acima está correto. Se este painel estiver aberto em outro endereço (por exemplo, o Live Server na porta 5500), o <code>main.py</code> precisa estar com o CORS habilitado.</p>
+      </div>`;
+    }
+  }
+
+  async function refreshServerState() {
+    try {
+      const cfg = await api('GET', '/rules');
+      renderRules(rulesView(cfg), 'Regras carregadas no servidor', cfg);
+    } catch (err) {
+      if (err.status === 404) {
+        state.rulesInfo = null;
+        $('#rulesOut').innerHTML = `<p class="muted">${statusDot('warning', '!')} Nenhuma regra carregada no servidor ainda.</p>`;
+      } else {
+        $('#rulesOut').innerHTML = errorBoxHtml(err, 'Não foi possível consultar as regras');
+      }
+    }
+    try {
+      const sit = await api('GET', '/situacoes');
+      renderSituations(sit, 'Base carregada no servidor');
+    } catch (err) {
+      if (err.status === 404) {
+        state.sitInfo = null;
+        $('#sitOut').innerHTML = `<p class="muted">${statusDot('warning', '!')} Nenhuma base de situação carregada no servidor ainda.</p>`;
+      } else {
+        $('#sitOut').innerHTML = errorBoxHtml(err, 'Não foi possível consultar a base');
+      }
+    }
+    renderServerChips();
+  }
+
+  function renderServerChips() {
+    if (state.connected !== true) {
+      const label = state.connected === null ? 'verificando…' : 'sem conexão';
+      $('#chipRules').innerHTML = `${statusDot('neutral', '–')}Regras: <b>${label}</b>`;
+      $('#chipSit').innerHTML = `${statusDot('neutral', '–')}Base de situação: <b>${label}</b>`;
+    }
+    const r = state.rulesInfo;
+    const s = state.sitInfo;
+    if (state.connected === true) {
+      $('#chipRules').innerHTML = r
+        ? `${statusDot('good', '✓')}Regras: <b>${esc(fundoName(r.fundo))}</b> · ${fmtInt(r.ativos)} de ${fmtInt(r.total)} ativas`
+        : `${statusDot('warning', '!')}Regras: <b>não carregadas</b>`;
+      $('#chipSit').innerHTML = s
+        ? `${statusDot('good', '✓')}Base de situação: <b>${fmtInt(s.total)} CNPJs</b>`
+        : `${statusDot('warning', '!')}Base de situação: <b>não carregada</b>`;
+    }
+    const res = state.result;
+    $('#chipResult').innerHTML = res
+      ? `${statusDot('accent', '●')}Resultado: <b>${fmtInt(res.resumo.total_notas)} notas</b> · ${esc(state.resultMeta.file || '')}`
+      : `${statusDot('neutral', '–')}Resultado: <b>nenhum</b>`;
+  }
+
+  /* ============================================================
+     ABAS, SELETORES DE ARQUIVO E TOOLTIP
+     ============================================================ */
+
+  function currentTab() {
+    const t = $('[role="tab"][aria-selected="true"]');
+    return t ? t.dataset.tab : 'config';
+  }
+
+  function showTab(name, focus = false) {
+    $$('[role="tab"]').forEach((tab) => {
+      const on = tab.dataset.tab === name;
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
+      if (on && focus) tab.focus();
+    });
+    $$('[role="tabpanel"]').forEach((panel) => { panel.hidden = panel.id !== `tab-${name}`; });
+    if (name === 'log') renderLog();
+    if (name === 'resultados') requestAnimationFrame(fitSplitLabels);
+  }
+
+  function setupTabs() {
+    const tabs = $$('[role="tab"]');
+    tabs.forEach((tab) => tab.addEventListener('click', () => showTab(tab.dataset.tab)));
+    $('[role="tablist"]').addEventListener('keydown', (e) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const i = tabs.findIndex((t) => t.dataset.tab === currentTab());
+      let next = i;
+      if (e.key === 'ArrowRight') next = (i + 1) % tabs.length;
+      if (e.key === 'ArrowLeft') next = (i - 1 + tabs.length) % tabs.length;
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tabs.length - 1;
+      e.preventDefault();
+      showTab(tabs[next].dataset.tab, true);
+    });
+  }
+
+  function setupFilePickers() {
+    $$('.file-pick').forEach((pick) => {
+      const input = $('input[type="file"]', pick);
+      const name = $('.file-name', pick);
+      const clear = $('.file-clear', pick);
+      const update = () => {
+        const f = input.files && input.files[0];
+        name.textContent = f ? `${f.name} · ${fmtBytes(f.size)}` : name.dataset.empty;
+        pick.classList.toggle('has-file', !!f);
+        if (clear) clear.hidden = !f;
+      };
+      input.addEventListener('change', update);
+      input.addEventListener('dragenter', () => pick.classList.add('dragging'));
+      input.addEventListener('dragleave', () => pick.classList.remove('dragging'));
+      input.addEventListener('drop', () => pick.classList.remove('dragging'));
+      if (clear) {
+        clear.addEventListener('click', () => {
+          input.value = '';
+          update();
+          input.focus();
+        });
+      }
+      update();
+    });
+  }
+
+  function setupTooltip() {
+    const tip = $('#tooltip');
+    const place = (x, y) => {
+      const r = tip.getBoundingClientRect();
+      let left = x + 14;
+      let top = y + 14;
+      if (left + r.width > window.innerWidth - 8) left = x - r.width - 14;
+      if (top + r.height > window.innerHeight - 8) top = y - r.height - 14;
+      tip.style.left = `${Math.max(8, left)}px`;
+      tip.style.top = `${Math.max(8, top)}px`;
+    };
+    const show = (el, x, y) => {
+      const value = document.createElement('strong');
+      value.textContent = el.dataset.tipValue || '';
+      const label = document.createElement('span');
+      label.textContent = el.dataset.tipLabel || '';
+      tip.replaceChildren(value, label);
+      tip.hidden = false;
+      place(x, y);
+    };
+    document.addEventListener('pointerover', (e) => {
+      const el = e.target.closest('[data-tip-value]');
+      if (el) show(el, e.clientX, e.clientY);
+    });
+    document.addEventListener('pointermove', (e) => {
+      if (!tip.hidden && e.target.closest('[data-tip-value]')) place(e.clientX, e.clientY);
+    });
+    document.addEventListener('pointerout', (e) => {
+      const el = e.target.closest('[data-tip-value]');
+      if (el && !el.contains(e.relatedTarget)) tip.hidden = true;
+    });
+    document.addEventListener('focusin', (e) => {
+      const el = e.target.closest('[data-tip-value]');
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      show(el, r.left + Math.min(r.width / 2, 160), r.bottom);
+    });
+    document.addEventListener('focusout', () => { tip.hidden = true; });
+    window.addEventListener('scroll', () => { tip.hidden = true; }, true);
+  }
+
+  function setupTableToggles() {
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-toggle-table]');
+      if (!btn) return;
+      const id = btn.dataset.toggleTable;
+      const chart = document.getElementById(id);
+      const table = document.getElementById(`${id}Table`);
+      if (!chart || !table) return;
+      const showTable = table.hidden;
+      table.hidden = !showTable;
+      chart.hidden = showTable;
+      btn.setAttribute('aria-pressed', String(showTable));
+      btn.textContent = showTable ? 'Ver como gráfico' : 'Ver como tabela';
+    });
+  }
+
+  /* ============================================================
+     GRÁFICOS
+     ============================================================ */
+
+  /* Barras horizontais de uma série: um único tom (série 1), valor na
+     ponta da barra, tooltip no hover e no foco, tabela equivalente. */
+  function barChartHtml(rows, { clickable = false, selected = '' } = {}) {
+    if (!rows.length) return '<p class="muted">Sem dados.</p>';
+    const max = Math.max(1, ...rows.map((r) => r.value));
+    return `<div class="bars">${rows.map((r) => {
+      const isSel = selected === r.key;
+      const role = clickable ? `role="button" aria-pressed="${isSel}"` : 'role="img"';
+      return `<div class="bar-row${clickable ? ' clickable' : ''}${isSel ? ' selected' : ''}" ${role} tabindex="0"
+          data-key="${esc(r.key)}" data-tip-value="${esc(r.tipValue)}" data-tip-label="${esc(r.tipLabel)}"
+          aria-label="${esc(`${r.label}: ${r.tipValue}`)}">
+          <div class="bar-label"><span>${esc(r.label)}</span>${r.sub ? `<code>${esc(r.sub)}</code>` : ''}</div>
+          <div class="bar-plot"><div class="bar-fill" style="--w:${(r.value / max).toFixed(4)}"></div><span class="bar-value">${fmtInt(r.value)}</span></div>
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  function splitHtml(res) {
+    const total = res.total_notas || 0;
+    const parts = [
+      { key: 'APROVADO', value: res.aprovadas || 0 },
+      { key: 'BARRADO', value: res.barradas || 0 },
+      { key: 'PENDENTE', value: res.pendentes || 0 },
+    ].map((p) => ({ ...p, meta: STATUS_META[p.key] }));
+    const visible = parts.filter((p) => p.value > 0);
+    const bar = total
+      ? `<div class="split">${visible.map((p) => {
+          const text = `${fmtInt(p.value)} notas · ${fmtPct(p.value, total)}`;
+          return `<div class="split-seg ${p.meta.cls}" style="flex-grow:${p.value}" role="img" tabindex="0"
+              aria-label="${esc(`${p.meta.plural}: ${text}`)}" data-tip-value="${esc(text)}" data-tip-label="${esc(p.meta.plural)}">
+              <span class="split-label">${esc(p.meta.icon)} ${fmtInt(p.value)}</span></div>`;
+        }).join('')}</div>`
+      : '';
+    const legend = `<ul class="legend">${parts.map((p) => `<li>${statusDot(p.meta.cls, p.meta.icon)}<span>${esc(p.meta.plural)}</span><b>${fmtInt(p.value)}</b><span class="muted">${fmtPct(p.value, total)}</span></li>`).join('')}</ul>`;
+    return bar + legend;
+  }
+
+  /* Um rótulo só fica dentro do segmento se couber com folga;
+     senão a legenda e o tooltip carregam o valor. */
+  function fitSplitLabels() {
+    $$('.split-seg').forEach((seg) => {
+      const label = $('.split-label', seg);
+      if (!label || !seg.clientWidth) return;
+      seg.classList.remove('no-label');
+      if (label.scrollWidth + 12 > seg.clientWidth) seg.classList.add('no-label');
+    });
+  }
+
+  /* ============================================================
+     1. CONFIGURAÇÃO
+     ============================================================ */
+
+  /* Aceita a configuração bruta (GET /rules) ou a resposta de /upload-rules. */
+  function rulesView(source) {
+    if (source && Array.isArray(source.validadores)) {
+      return { fundo: source.fundo, validadores: source.validadores, precificacao: source.precificacao };
+    }
+    const flags = (source && source.flags) || {};
+    const params = (source && source.parametros) || {};
+    return {
+      fundo: source && source.fundo,
+      validadores: Object.keys(flags).map((code) => ({ codigo: code, ativo: flags[code], parametros: params[code] || {} })),
+      precificacao: source && source.precificacao,
+    };
+  }
+
+  function renderRules(view, title, raw) {
+    const validators = Array.isArray(view.validadores) ? view.validadores.filter(Boolean) : [];
+    const active = validators.filter((v) => v.ativo === true).length;
+    state.rulesInfo = { fundo: view.fundo, total: validators.length, ativos: active };
+    $('#rulesOut').innerHTML = `
+      <div class="out-head">${statusDot('good', '✓')}<span>${esc(title)}</span></div>
+      <div class="mini-kpis">
+        <div><span>Fundo</span><b>${esc(fundoFull(view.fundo))}</b></div>
+        <div><span>Validadores</span><b>${fmtInt(validators.length)}</b></div>
+        <div><span>Ativos</span><b>${fmtInt(active)}</b></div>
+        <div><span>Inativos</span><b>${fmtInt(validators.length - active)}</b></div>
+      </div>
+      ${simpleTable(['Regra', 'Situação', 'Parâmetros'], validators.map((v) => [
+        `<div class="cell-main">${esc(ruleName(v.codigo))}</div><code class="cell-sub">${esc(v.codigo)}</code>`,
+        v.ativo === true ? badge({ label: 'Ativa', icon: '●', cls: 'accent' }) : badge({ label: 'Inativa', icon: '○', cls: 'neutral' }),
+        paramsHtml(v.parametros),
+      ]), [], { scroll: false })}
+      <p class="kv-line"><span>Precificação:</span>${esc(pricingText(view.precificacao))}</p>
+      ${raw ? '<details class="raw"><summary>Ver JSON recebido</summary><pre class="json"></pre></details>' : ''}`;
+    if (raw) $('#rulesOut pre.json').textContent = JSON.stringify(raw, null, 2);
+    renderServerChips();
+  }
+
+  async function uploadRules(btn) {
+    const file = $('#rulesFile').files[0];
+    if (!file) { toast('Escolha o arquivo JSON de regras primeiro.', 'error'); return; }
+    const body = new FormData();
+    body.append('file', file);
+    await withBusy(btn, 'Enviando…', async () => {
+      try {
+        const data = await api('POST', '/upload-rules', { body });
+        renderRules(rulesView(data), `Regras enviadas e carregadas (${file.name})`, data);
+        toast('Regras carregadas no servidor.', 'success');
+      } catch (err) {
+        $('#rulesOut').innerHTML = errorBoxHtml(err, 'As regras não foram carregadas');
+        toast(err.message, 'error');
+      }
+    });
+  }
+
+  async function getRules(btn) {
+    await withBusy(btn, 'Consultando…', async () => {
+      try {
+        const cfg = await api('GET', '/rules');
+        renderRules(rulesView(cfg), 'Regras carregadas no servidor (GET /rules)', cfg);
+      } catch (err) {
+        if (err.status === 404) {
+          state.rulesInfo = null;
+          renderServerChips();
+          $('#rulesOut').innerHTML = `<p class="muted">${statusDot('warning', '!')} ${esc(err.message)}</p>`;
+        } else {
+          $('#rulesOut').innerHTML = errorBoxHtml(err, 'Não foi possível consultar as regras');
+        }
+      }
+    });
+  }
+
+  function renderSituations(data, title) {
+    const total = data.total_cnpjs || 0;
+    state.sitInfo = { total };
+    const entries = Object.entries(data.por_situacao || {}).sort((a, b) => b[1] - a[1]);
+    const rows = entries.map(([k, v]) => ({
+      key: k, label: k, value: v,
+      tipValue: `${fmtInt(v)} CNPJs`, tipLabel: `${k} · ${fmtPct(v, total)} da base`,
+    }));
+    $('#sitOut').innerHTML = `
+      <div class="out-head">${statusDot('good', '✓')}<span>${esc(title)}</span></div>
+      <div class="mini-kpis">
+        <div><span>CNPJs na base</span><b>${fmtInt(total)}</b></div>
+        <div><span>Situações diferentes</span><b>${fmtInt(entries.length)}</b></div>
+      </div>
+      <div class="chart-head">
+        <h3>CNPJs por situação cadastral</h3>
+        <button class="btn small" type="button" data-toggle-table="sitChart" aria-pressed="false">Ver como tabela</button>
+      </div>
+      <div id="sitChart">${barChartHtml(rows)}</div>
+      <div id="sitChartTable" hidden>${simpleTable(['Situação', 'CNPJs', '% da base'], entries.map(([k, v]) => [esc(k), fmtInt(v), fmtPct(v, total)]), [false, true, true], { scroll: false })}</div>
+      <p class="hint">As situações aceitas pelo fundo vêm do parâmetro <code>situacoes_aceitas</code> do JSON de regras.</p>`;
+    renderServerChips();
+  }
+
+  async function uploadSituations(btn) {
+    const file = $('#sitFile').files[0];
+    if (!file) { toast('Escolha o CSV da base de situação primeiro.', 'error'); return; }
+    const body = new FormData();
+    body.append('file', file);
+    await withBusy(btn, 'Enviando…', async () => {
+      try {
+        const data = await api('POST', '/upload-situacoes', { body });
+        renderSituations(data, `Base enviada e salva no servidor (${file.name})`);
+        toast(`Base carregada: ${fmtInt(data.total_cnpjs)} CNPJs.`, 'success');
+      } catch (err) {
+        $('#sitOut').innerHTML = errorBoxHtml(err, 'A base não foi carregada (a anterior foi mantida)');
+        toast(err.message, 'error');
+      }
+    });
+  }
+
+  async function getSituations(btn) {
+    await withBusy(btn, 'Consultando…', async () => {
+      try {
+        const data = await api('GET', '/situacoes');
+        renderSituations(data, 'Base carregada no servidor (GET /situacoes)');
+      } catch (err) {
+        if (err.status === 404) {
+          state.sitInfo = null;
+          renderServerChips();
+          $('#sitOut').innerHTML = `<p class="muted">${statusDot('warning', '!')} ${esc(err.message)}</p>`;
+        } else {
+          $('#sitOut').innerHTML = errorBoxHtml(err, 'Não foi possível consultar a base');
+        }
+      }
+    });
+  }
+
+  /* ============================================================
+     2. LOTE: LEITURA DO CSV (POST /parse-csv)
+     ============================================================ */
+
+  async function parseCsv(btn) {
+    const file = $('#notesFile').files[0];
+    if (!file) { toast('Escolha o CSV de notas primeiro.', 'error'); return; }
+    const out = $('#parseOut');
+    out.hidden = false;
+    out.innerHTML = loadingHtml('Lendo e validando o CSV no servidor…');
+    const body = new FormData();
+    body.append('file', file);
+    await withBusy(btn, 'Validando…', async () => {
+      try {
+        const data = await api('POST', '/parse-csv', { body });
+        renderParse(data, file);
+      } catch (err) {
+        out.innerHTML = `<div class="card-head"><div><h2>Leitura do CSV</h2><p>${esc(file.name)}</p></div></div>${errorBoxHtml(err, 'O CSV tem problemas e não pode ser avaliado')}`;
+      }
+    });
+  }
+
+  function renderParse(data, file) {
+    const records = Array.isArray(data.recebiveis) ? data.recebiveis : [];
+    let totalCents = 0;
+    const funds = new Set();
+    const sacados = new Set();
+    let minDue = '';
+    let maxDue = '';
+    for (const r of records) {
+      if (typeof r.VALOR_NOMINAL_CENTAVOS === 'number') totalCents += r.VALOR_NOMINAL_CENTAVOS;
+      funds.add(r.NOME_FUNDO);
+      sacados.add(digits(r.DOC_SACADO));
+      const due = r.DATA_VENCIMENTO_ORIGINAL || '';
+      if (due && (!minDue || due < minDue)) minDue = due;
+      if (due && (!maxDue || due > maxDue)) maxDue = due;
+    }
+    const preview = records.slice(0, PREVIEW_ROWS);
+    $('#parseOut').innerHTML = `
+      <div class="card-head"><div>
+        <h2>Leitura do CSV</h2>
+        <p>${statusDot('good', '✓')} ${esc(file.name)}: todas as linhas foram lidas e convertidas sem erro.</p>
+      </div></div>
+      <div class="mini-kpis">
+        <div><span>Notas lidas</span><b>${fmtInt(data.total)}</b></div>
+        <div><span>Valor de face somado</span><b>${brl(totalCents)}</b></div>
+        <div><span>Fundos no arquivo</span><b>${fmtInt(funds.size)}</b></div>
+        <div><span>Clientes (sacados)</span><b>${fmtInt(sacados.size)}</b></div>
+        <div><span>Vencimentos</span><b>${minDue ? `${esc(fmtDate(minDue))} a ${esc(fmtDate(maxDue))}` : '—'}</b></div>
+      </div>
+      <p class="hint" style="margin:0 0 10px">${esc(data.convencao_monetaria || '')} Exibindo ${fmtInt(preview.length)} de ${fmtInt(records.length)} notas.</p>
+      ${simpleTable(
+        ['Linha', 'Nota', 'Tipo', 'Cliente (sacado)', 'CNPJ do cliente', 'Empresa vendedora', 'Valor de face', 'Vencimento', 'Aquisição'],
+        preview.map((r) => [
+          esc(r.LINHA ?? '—'),
+          `<code>${esc(r.NU_DOCUMENTO)}</code>`,
+          esc(r.TIPO_RECEBIVEL),
+          esc(r.NOME_SACADO),
+          `<code>${esc(r.DOC_SACADO)}</code>`,
+          esc(r.NOME_CEDENTE),
+          brl(r.VALOR_NOMINAL_CENTAVOS),
+          esc(fmtDate(r.DATA_VENCIMENTO_ORIGINAL)),
+          esc(fmtDate(r.DATA_AQUISICAO)),
+        ]),
+        [true, false, false, false, false, false, true, true, true],
+      )}`;
+  }
+
+  /* ============================================================
+     2. LOTE: AVALIAÇÃO (DIRETA OU POR JOB)
+     ============================================================ */
+
+  async function evaluate(btn) {
+    const file = $('#notesFile').files[0];
+    if (!file) { toast('Escolha o CSV de notas primeiro.', 'error'); return; }
+    const mode = $('input[name="mode"]:checked').value;
+    const detalhes = $('#optDetails').checked;
+    const body = new FormData();
+    body.append('file', file);
+
+    if (mode === 'direto') {
+      stopTracking();
+      const ui = mountProgress($('#loteProgress'), { title: 'Avaliação direta', indeterminate: true });
+      await withBusy(btn, 'Avaliando…', async () => {
+        const t0 = performance.now();
+        try {
+          const data = await api('POST', '/avaliar-recebiveis', { body, query: { detalhes } });
+          loadResult(data, { source: 'Avaliação direta (POST /avaliar-recebiveis)', file: file.name });
+          ui.finishDirect(performance.now() - t0, data);
+          if (currentTab() === 'lote') showTab('resultados');
+        } catch (err) {
+          ui.fail(err, 'A avaliação não foi concluída');
+        }
+      });
+      return;
+    }
+
+    const rulesFile = $('#jobRulesFile').files[0];
+    const sitFile = $('#jobSitFile').files[0];
+    if (rulesFile) body.append('regras', rulesFile);
+    if (sitFile) body.append('situacoes', sitFile);
+    await withBusy(btn, 'Enviando…', async () => {
+      try {
+        const job = await api('POST', '/avaliar-recebiveis/jobs', { body, query: { detalhes } });
+        registerSessionJob(job.job_id, file.name);
+        trackJob(job.job_id, {
+          container: $('#loteProgress'),
+          stages: [...(rulesFile ? ['regras'] : []), ...(sitFile ? ['situacoes'] : []), 'csv', 'avaliacao'],
+          file: file.name,
+          originTab: 'lote',
+        });
+      } catch (err) {
+        const box = $('#loteProgress');
+        box.hidden = false;
+        box.innerHTML = errorBoxHtml(err, 'O job não foi criado');
+      }
+    });
+  }
+
+  /* Bloco de progresso reutilizado pela aba Lote e pela aba Jobs. */
+  function mountProgress(container, { jobId = null, title = 'Processamento', indeterminate = false } = {}) {
+    container.hidden = false;
+    container.innerHTML = `
+      <div class="progress-head">
+        <div><h2>${esc(title)}</h2>${jobId ? `<code>job ${esc(jobId)}</code>` : ''}</div>
+        <span class="progress-state" role="status"></span>
+      </div>
+      <div class="progress-pct" aria-hidden="true">0%</div>
+      <div class="meter${indeterminate ? ' indeterminate' : ''}" role="progressbar" aria-label="Progresso do processamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="meter-fill"></div>
+      </div>
+      <div class="progress-desc"></div>
+      <div class="progress-counts"></div>
+      <ol class="steps" aria-label="Etapas"></ol>
+      <div class="progress-timing"></div>
+      <div class="actions">
+        <button class="btn" type="button" data-act="stop"${indeterminate ? ' hidden' : ''}>Parar de acompanhar</button>
+        <button class="btn primary" type="button" data-act="results" hidden>Ver resultados</button>
+      </div>
+      <div class="progress-out"></div>`;
+    const q = (s) => container.querySelector(s);
+    const els = {
+      state: q('.progress-state'), pct: q('.progress-pct'), meter: q('.meter'), fill: q('.meter-fill'),
+      desc: q('.progress-desc'), counts: q('.progress-counts'), steps: q('.steps'), timing: q('.progress-timing'),
+      stop: q('[data-act="stop"]'), results: q('[data-act="results"]'), out: q('.progress-out'),
+    };
+    const ui = {
+      onStop: null,
+      setState(key) {
+        const meta = JOB_STATUS_META[key] || JOB_STATUS_META.na_fila;
+        els.state.innerHTML = badge(meta);
+      },
+      setPercent(pct, text) {
+        const v = Math.max(0, Math.min(100, Number(pct) || 0));
+        els.fill.style.width = `${v}%`;
+        els.pct.textContent = `${fmtNum1(v)}%`;
+        els.meter.setAttribute('aria-valuenow', String(Math.round(v)));
+        els.meter.setAttribute('aria-valuetext', `${fmtNum1(v)}%${text ? ` — ${text}` : ''}`);
+      },
+      update(snap, job) {
+        ui.setState(snap.status);
+        ui.setPercent(snap.percentual, snap.descricao);
+        els.desc.textContent = snap.descricao || '';
+        if (snap.total > 0) {
+          const missing = snap.faltam ?? (snap.total - snap.processados);
+          els.counts.textContent = `Etapa atual: ${fmtInt(snap.processados)} de ${fmtInt(snap.total)} processados · faltam ${fmtInt(missing)}`;
+        } else {
+          els.counts.textContent = snap.status === 'na_fila' ? 'Aguardando a primeira atualização do servidor.' : '';
+        }
+        const stages = (Array.isArray(snap.etapas) && snap.etapas.length ? snap.etapas : job && job.stages) || [];
+        ui.renderSteps(stages, snap.etapa, snap.status);
+      },
+      renderSteps(stages, current, status) {
+        const cur = stages.indexOf(current);
+        els.steps.innerHTML = stages.map((st, i) => {
+          let kind = 'waiting';
+          if (status === 'concluido' || (cur >= 0 && i < cur)) kind = 'done';
+          else if (i === cur) kind = status === 'erro' ? 'failed' : 'active';
+          const meta = {
+            waiting: { cls: 'neutral', icon: '○', text: 'aguardando' },
+            active: { cls: 'accent', icon: '●', text: 'em andamento' },
+            done: { cls: 'good', icon: '✓', text: 'concluída' },
+            failed: { cls: 'critical', icon: '✕', text: 'falhou' },
+          }[kind];
+          return `<li class="step ${kind}">${statusDot(meta.cls, meta.icon)}${esc(STAGE_NAMES[st] || st)}<span class="sr-only"> — ${meta.text}</span></li>`;
+        }).join('');
+      },
+      tick(job) {
+        const elapsed = performance.now() - job.startedAt;
+        const pct = job.last ? Number(job.last.percentual) || 0 : 0;
+        let eta = '—';
+        if (pct >= 2 && pct < 100) eta = `≈ ${fmtDuration((elapsed * (100 - pct)) / pct)}`;
+        if (pct >= 100) eta = '0 s';
+        els.timing.textContent = `Acompanhando há ${fmtDuration(elapsed)} · tempo restante estimado: ${eta}`;
+      },
+      downloading() {
+        els.desc.textContent = 'Processamento concluído. Baixando o resultado…';
+        els.stop.hidden = true;
+      },
+      loaded(data) {
+        els.desc.textContent = 'Resultado carregado.';
+        els.out.innerHTML = `<div class="alert"><div class="alert-title">${statusDot('good', '✓')}<span>${fmtInt(data.resumo.total_notas)} notas avaliadas · ${fmtInt(data.resumo.aprovadas)} aprovadas · total a receber ${money(data.resumo.total_a_receber)}</span></div></div>`;
+        els.results.hidden = false;
+      },
+      finishDirect(ms, data) {
+        els.meter.classList.remove('indeterminate');
+        ui.setState('concluido');
+        ui.setPercent(100, 'concluído');
+        els.counts.textContent = '';
+        els.timing.textContent = `Tempo total: ${fmtDuration(ms)}`;
+        ui.loaded(data);
+      },
+      fail(err, title = 'O processamento foi interrompido') {
+        els.meter.classList.remove('indeterminate');
+        ui.setState('erro');
+        els.stop.hidden = true;
+        els.out.innerHTML = errorBoxHtml(err, title);
+      },
+      stopped(message) {
+        ui.setState('parado');
+        els.stop.hidden = true;
+        els.out.innerHTML = `<div class="alert"><p>${esc(message)}</p></div>`;
+      },
+    };
+    els.stop.addEventListener('click', () => { if (ui.onStop) ui.onStop(); });
+    els.results.addEventListener('click', () => showTab('resultados'));
+    if (indeterminate) {
+      ui.setState('processando');
+      els.pct.textContent = '…';
+      els.desc.textContent = 'Processando no servidor. O modo direto não informa progresso: a resposta chega de uma vez no fim.';
+    }
+    return ui;
+  }
+
+  /* Acompanha um job: SSE primeiro; se a conexão cair, consulta
+     GET /jobs/{id} periodicamente até terminar. */
+  function trackJob(jobId, opts = {}) {
+    stopTracking();
+    const ui = mountProgress(opts.container, { jobId, title: opts.title || 'Processamento do lote' });
+    const job = {
+      id: jobId, ui, opts, done: false, startedAt: performance.now(), source: null, poll: null,
+      ticker: null, events: 0, last: null, stages: opts.stages || null, logEntry: null,
+    };
+    state.job = job;
+    ui.onStop = () => stopTracking('Você parou de acompanhar. O job continua rodando no servidor; retome pela aba Jobs.');
+    ui.update({ status: 'na_fila', percentual: 0, descricao: 'Aguardando início do processamento…', etapas: job.stages, processados: 0, total: 0 }, job);
+    ui.tick(job);
+    job.ticker = setInterval(() => ui.tick(job), 500);
+    if ('EventSource' in window) openStream(job);
+    else startPolling(job);
+  }
+
+  function openStream(job) {
+    const path = `/jobs/${encodeURIComponent(job.id)}/progresso`;
+    let url;
+    try { url = apiUrl(path); } catch { startPolling(job); return; }
+    job.logEntry = addLog({ method: 'SSE', path, display: path, status: 'aberta', ms: 0, size: 0, preview: 'Conexão SSE aberta.' });
+    const source = new EventSource(url.toString());
+    job.source = source;
+    const handle = (e) => {
+      job.events += 1;
+      let snap;
+      try { snap = JSON.parse(e.data); } catch { return; }
+      onSnapshot(job, snap);
+    };
+    source.addEventListener('progresso', handle);
+    source.addEventListener('concluido', handle);
+    source.addEventListener('erro', handle);
+    source.onerror = () => {
+      if (job.done || state.job !== job) return;
+      source.close();
+      job.source = null;
+      finishStreamLog(job, job.events ? 'interrompida' : 'falhou');
+      startPolling(job);
+    };
+  }
+
+  function finishStreamLog(job, label) {
+    if (!job.logEntry) return;
+    updateLog(job.logEntry, {
+      status: job.events ? 200 : label,
+      ms: performance.now() - job.startedAt,
+      preview: `${fmtInt(job.events)} evento(s) recebido(s) · conexão ${label}.\n\nÚltimo estado:\n${JSON.stringify(job.last, null, 2)}`,
+    });
+    job.logEntry = null;
+  }
+
+  function startPolling(job) {
+    if (job.done) return;
+    const tick = async () => {
+      if (job.done || state.job !== job) return;
+      try {
+        const snap = await api('GET', `/jobs/${encodeURIComponent(job.id)}`);
+        onSnapshot(job, snap);
+      } catch (err) {
+        failJob(job, err);
+        return;
+      }
+      if (!job.done) job.poll = setTimeout(tick, 800);
+    };
+    tick();
+  }
+
+  function onSnapshot(job, snap) {
+    if (job.done || state.job !== job) return;
+    job.last = snap;
+    if (Array.isArray(snap.etapas) && snap.etapas.length) job.stages = snap.etapas;
+    job.ui.update(snap, job);
+    updateSessionJob(job.id, { status: snap.status, percentual: snap.percentual });
+    if (snap.status === 'concluido') {
+      completeJob(job);
+    } else if (snap.status === 'erro') {
+      const erro = snap.erro || {};
+      const info = describeError({ detail: erro.detail }, erro.status_code);
+      failJob(job, new ApiError(info.message, { status: erro.status_code, info }));
+    }
+  }
+
+  function closeJob(job, label) {
+    if (job.source) { job.source.close(); job.source = null; }
+    clearTimeout(job.poll);
+    clearInterval(job.ticker);
+    job.ui.tick(job);
+    finishStreamLog(job, label);
+  }
+
+  async function completeJob(job) {
+    if (job.done) return;
+    job.done = true;
+    closeJob(job, 'encerrada após a conclusão');
+    job.ui.downloading();
+    try {
+      const data = await api('GET', `/jobs/${encodeURIComponent(job.id)}/resultado`);
+      loadResult(data, { source: 'Job com barra de progresso', file: job.opts.file || '—', jobId: job.id });
+      job.ui.loaded(data);
+      toast(`Resultado carregado: ${fmtInt(data.resumo.total_notas)} notas.`, 'success');
+      if (job.opts.originTab && currentTab() === job.opts.originTab) showTab('resultados');
+    } catch (err) {
+      job.ui.fail(err, 'O job terminou, mas o resultado não pôde ser baixado');
+    }
+  }
+
+  function failJob(job, err) {
+    if (job.done) return;
+    job.done = true;
+    closeJob(job, 'encerrada com erro');
+    job.ui.fail(err);
+    updateSessionJob(job.id, { status: 'erro' });
+  }
+
+  function stopTracking(message) {
+    const job = state.job;
+    if (!job) return;
+    if (!job.done) {
+      job.done = true;
+      closeJob(job, 'fechada pelo usuário');
+      job.ui.stopped(message || 'Acompanhamento encerrado para acompanhar outro processamento.');
+      updateSessionJob(job.id, { status: 'parado' });
+    }
+    state.job = null;
+  }
+
+  /* ============================================================
+     3. RESULTADOS
+     ============================================================ */
+
+  function loadResult(data, meta) {
+    if (!data || !Array.isArray(data.notas) || !data.resumo) {
+      throw new ApiError('A resposta não tem o formato esperado (faltam "resumo" ou "notas").');
+    }
+    state.result = data;
+    state.resultMeta = { ...meta, loadedAt: new Date() };
+    state.notes = data.notas;
+    state.index = data.notas.map((n) => [n.id, n.sacado, n.cedente, n.doc_sacado, digits(n.doc_sacado), n.tipo_recebivel].join(' ').toLowerCase());
+    state.expanded.clear();
+    state.filters = { q: '', status: '', rule: '' };
+    state.sort = { key: 'linha', dir: 1 };
+    state.page = 1;
+    $('#fSearch').value = '';
+    $('#fStatus').value = '';
+    if (state.expected) runComparison(); else state.comparison = null;
+    renderResults();
+    applyFilters();
+    renderServerChips();
+  }
+
+  function renderResults() {
+    const r = state.result;
+    const res = r.resumo;
+    const meta = state.resultMeta;
+    const hasDetails = state.notes.length > 0 && Array.isArray(state.notes[0].regras);
+    $('#resultsEmpty').hidden = true;
+    $('#resultsBody').hidden = false;
+    const count = $('#resultsCount');
+    count.hidden = false;
+    count.textContent = fmtInt(res.total_notas);
+
+    const items = [
+      ['Arquivo', meta.file || '—'],
+      ['Origem', meta.source],
+      meta.jobId ? ['Job', meta.jobId] : null,
+      ['Carregado às', meta.loadedAt.toLocaleTimeString('pt-BR')],
+      ['Fundo', fundoFull(r.fundo)],
+      ['Precificação', pricingText(r.precificacao)],
+      ['Detalhes técnicos', hasDetails ? 'incluídos' : 'não incluídos'],
+    ].filter(Boolean);
+    $('#resultsMeta').innerHTML = `<dl class="meta">${items.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+
+    const total = res.total_notas || 0;
+    const kpi = (label, value, sub = '') => `<div class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${esc(value)}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ''}</div>`;
+    $('#resultsSummary').innerHTML = `
+      <div class="hero">
+        <div class="hero-label">Total a receber</div>
+        <div class="hero-value">${money(res.total_a_receber)}</div>
+        <div class="hero-sub">Soma do valor líquido das ${fmtInt(res.aprovadas)} notas aprovadas: valor de face de ${money(res.valor_nominal_aprovado)} menos ${money(res.desconto_total)} de desconto.</div>
+      </div>
+      <div class="kpis">
+        ${kpi('Notas analisadas', fmtInt(total))}
+        ${kpi(`${statusDot('good', '✓')}Aprovadas`, fmtInt(res.aprovadas), `${fmtPct(res.aprovadas, total)} do lote`)}
+        ${kpi(`${statusDot('critical', '✕')}Barradas`, fmtInt(res.barradas), `${fmtPct(res.barradas, total)} do lote`)}
+        ${kpi(`${statusDot('warning', '!')}Pendentes`, fmtInt(res.pendentes), res.pendentes ? 'configuração de regra incompleta' : 'nenhuma')}
+      </div>
+      <div class="kpis">
+        ${kpi('Valor de face do lote', money(res.valor_nominal_total))}
+        ${kpi('Valor de face aprovado', money(res.valor_nominal_aprovado))}
+        ${kpi('Desconto total', money(res.desconto_total))}
+      </div>
+      <div class="split-title">Distribuição das notas</div>
+      ${splitHtml(res)}
+      ${r.universo_concentracao ? `<p class="hint">Base da concentração: ${esc(r.universo_concentracao)}</p>` : ''}`;
+
+    renderRuleChart();
+    requestAnimationFrame(fitSplitLabels);
+  }
+
+  function ruleRows() {
+    const res = state.result.resumo;
+    return Object.entries(res.barradas_por_regra || {})
+      .sort((a, b) => b[1] - a[1])
+      .map(([code, n]) => ({
+        key: code, label: ruleName(code), sub: code, value: n,
+        tipValue: `${fmtInt(n)} notas barradas`,
+        tipLabel: `${ruleName(code)} · ${fmtPct(n, res.barradas)} das barradas`,
+      }));
+  }
+
+  function renderRuleChart() {
+    const rows = ruleRows();
+    const res = state.result.resumo;
+    $('#rulesChart').innerHTML = rows.length
+      ? barChartHtml(rows, { clickable: true, selected: state.filters.rule })
+      : `<p class="muted">${statusDot('good', '✓')} Nenhuma nota foi barrada.</p>`;
+    $('#rulesChartTable').innerHTML = simpleTable(
+      ['Regra', 'Código', 'Notas barradas', '% das barradas'],
+      rows.map((r) => [esc(r.label), `<code>${esc(r.key)}</code>`, fmtInt(r.value), fmtPct(r.value, res.barradas)]),
+      [false, false, true, true],
+      { scroll: false },
+    );
+    const sel = $('#fRule');
+    sel.innerHTML = '<option value="">Qualquer regra</option>'
+      + rows.map((r) => `<option value="${esc(r.key)}">${esc(r.label)} (${fmtInt(r.value)})</option>`).join('');
+    sel.value = state.filters.rule;
+  }
+
+  function updateRuleSelection() {
+    $$('#rulesChart .bar-row').forEach((row) => {
+      const on = row.dataset.key === state.filters.rule;
+      row.classList.toggle('selected', on);
+      row.setAttribute('aria-pressed', String(on));
+    });
+  }
+
+  function applyFilters({ resetPage = true } = {}) {
+    const { notes, index } = state;
+    const { q, status, rule } = state.filters;
+    const needle = q.trim().toLowerCase();
+    const needleDigits = digits(needle);
+    const out = [];
+    for (let i = 0; i < notes.length; i += 1) {
+      const n = notes[i];
+      if (status && n.status !== status) continue;
+      if (rule && !(Array.isArray(n.barrado_por) && n.barrado_por.includes(rule))) continue;
+      if (needle) {
+        const hay = index[i];
+        if (!hay.includes(needle) && !(needleDigits.length >= 4 && hay.includes(needleDigits))) continue;
+      }
+      out.push(i);
+    }
+    state.filtered = out;
+    sortFiltered();
+    if (resetPage) state.page = 1;
+    renderTable();
+    updateRuleSelection();
+  }
+
+  const SORT_KEYS = {
+    linha: (n) => n.linha,
+    id: (n) => String(n.id ?? ''),
+    status: (n) => String(n.status ?? ''),
+    sacado: (n) => String(n.sacado ?? ''),
+    vencimento: (n) => String(n.vencimento ?? ''),
+    valor_nominal: (n) => centsOf(n.valor_nominal) ?? -1,
+    valor_liquido: (n) => centsOf(n.valor_liquido) ?? -1,
+  };
+
+  function sortFiltered() {
+    const { key, dir } = state.sort;
+    if (key === 'linha' && dir === 1) return; // já vem na ordem do arquivo
+    const get = SORT_KEYS[key];
+    const notes = state.notes;
+    const decorated = state.filtered.map((i) => ({ i, k: get(notes[i]), l: notes[i].linha }));
+    decorated.sort((a, b) => {
+      let c = typeof a.k === 'number' && typeof b.k === 'number' ? a.k - b.k : COLLATOR.compare(a.k, b.k);
+      if (c === 0) c = a.l - b.l;
+      return c * dir;
+    });
+    state.filtered = decorated.map((d) => d.i);
+  }
+
+  function renderHead() {
+    const th = (label, key, cls = '') => {
+      if (!key) return `<th class="${cls}">${label}</th>`;
+      const active = state.sort.key === key;
+      const aria = active ? (state.sort.dir === 1 ? 'ascending' : 'descending') : 'none';
+      const arrow = active ? (state.sort.dir === 1 ? '▲' : '▼') : '↕';
+      return `<th class="${cls}" aria-sort="${aria}"><button type="button" class="th-sort" data-sort="${key}">${label}<span class="arrow" aria-hidden="true">${arrow}</span></button></th>`;
+    };
+    $('#notesHead').innerHTML = `<tr>
+      ${th('<span class="sr-only">Detalhes</span>', null, 'col-expand')}
+      ${th('Linha', 'linha', 'num')}
+      ${th('Nota', 'id')}
+      ${th('Status', 'status')}
+      ${th('Cliente (sacado)', 'sacado')}
+      ${th('Tipo', null)}
+      ${th('Vencimento', 'vencimento', 'num')}
+      ${th('Valor de face', 'valor_nominal', 'num')}
+      ${th('Desconto', null, 'num')}
+      ${th('Valor líquido', 'valor_liquido', 'num')}
+      ${th('Motivo', null)}
+    </tr>`;
+  }
+
+  function moneyCell(m) {
+    return centsOf(m) === null ? '<span class="muted">—</span>' : brl(centsOf(m));
+  }
+
+  function rowHtml(n) {
+    const open = state.expanded.has(n.linha);
+    const motives = Array.isArray(n.motivos) ? n.motivos : [];
+    const motiveCell = motives.length
+      ? `<div class="motive" title="${esc(motives.join(' | '))}">${esc(motives[0])}</div>${motives.length > 1 ? `<span class="more">+${motives.length - 1} motivo(s)</span>` : ''}`
+      : '<span class="muted">—</span>';
+    return `<tr class="note-row${open ? ' open' : ''}" data-linha="${esc(n.linha)}">
+      <td class="col-expand"><button type="button" class="expand" data-expand="${esc(n.linha)}" aria-expanded="${open}" aria-label="${open ? 'Ocultar' : 'Mostrar'} detalhes da linha ${esc(n.linha)}">${open ? '▾' : '▸'}</button></td>
+      <td class="num">${esc(n.linha)}</td>
+      <td><code>${esc(n.id)}</code></td>
+      <td>${statusBadge(n.status)}</td>
+      <td class="col-client"><div class="cell-main">${esc(n.sacado)}</div><span class="cell-sub mono">${esc(n.doc_sacado)}</span></td>
+      <td>${esc(n.tipo_recebivel)}</td>
+      <td class="num">${esc(fmtDate(n.vencimento))}</td>
+      <td class="num">${moneyCell(n.valor_nominal)}</td>
+      <td class="num">${moneyCell(n.desconto)}</td>
+      <td class="num strong">${moneyCell(n.valor_liquido)}</td>
+      <td>${motiveCell}</td>
+    </tr>`;
+  }
+
+  function pricingKv(p, status) {
+    if (!p) return '';
+    if (p.status === 'CALCULADA') {
+      const label = status === 'APROVADO' ? 'Cálculo' : 'Simulação (se fosse aprovada)';
+      return `<dt>Prazo até o vencimento</dt><dd>${esc(p.dias_ate_vencimento)} dias</dd>
+        <dt>Taxa</dt><dd>${esc(String(p.taxa_mensal_percentual).replace('.', ','))}% ao mês · base de ${esc(p.base_dias)} dias</dd>
+        <dt>${esc(label)}</dt><dd>desconto ${money(p.desconto)} · líquido ${money(p.valor_liquido_estimado)}</dd>`;
+    }
+    return `<dt>Precificação</dt><dd>${esc(p.motivo || p.status)}</dd>`;
+  }
+
+  function detailHtml(n, cols) {
+    const motives = Array.isArray(n.motivos) ? n.motivos : [];
+    const parts = [];
+    parts.push(`<div class="detail-grid">
+      <section><h4>Nota</h4><dl class="kv">
+        <dt>Linha do CSV</dt><dd>${esc(n.linha)}</dd>
+        <dt>Número</dt><dd><code>${esc(n.id)}</code></dd>
+        <dt>Tipo</dt><dd>${esc(n.tipo_recebivel)}</dd>
+        <dt>Vencimento</dt><dd>${esc(fmtDate(n.vencimento))}</dd>
+        <dt>Empresa vendedora (cedente)</dt><dd>${esc(n.cedente)}</dd>
+        <dt>Cliente (sacado)</dt><dd>${esc(n.sacado)}</dd>
+        <dt>CNPJ do cliente</dt><dd><code>${esc(n.doc_sacado)}</code></dd>
+      </dl></section>
+      <section><h4>Valores</h4><dl class="kv">
+        <dt>Valor de face</dt><dd>${money(n.valor_nominal)}</dd>
+        <dt>Desconto</dt><dd>${n.desconto ? money(n.desconto) : '—'}</dd>
+        <dt>Valor líquido</dt><dd>${n.valor_liquido ? `<b>${money(n.valor_liquido)}</b>` : '—'}</dd>
+        ${pricingKv(n.precificacao, n.status)}
+      </dl></section>
+    </div>`);
+    if (motives.length) {
+      parts.push(`<section><h4>${n.status === 'PENDENTE' ? 'Por que ficou pendente' : 'Por que foi barrada'}</h4><ul class="reasons">${motives.map((m) => `<li>${esc(m)}</li>`).join('')}</ul></section>`);
+    } else {
+      parts.push(`<section><h4>Resultado</h4><p>${statusDot('good', '✓')} Todas as regras ativas foram atendidas.</p></section>`);
+    }
+    if (Array.isArray(n.regras)) {
+      parts.push(`<section><h4>Resultado técnico de cada regra</h4>${simpleTable(
+        ['Regra', 'Resultado', 'Mensagem', 'Detalhes'],
+        n.regras.map((r) => [
+          `<div class="cell-main">${esc(ruleName(r.codigo))}</div><code class="cell-sub">${esc(r.codigo)}</code>`,
+          badge(RULE_RESULT_META[r.status] || { label: r.status, icon: '?', cls: 'neutral' }),
+          esc(r.mensagem),
+          r.detalhes ? paramsHtml(r.detalhes) : '<span class="muted">—</span>',
+        ]),
+        [], { scroll: false },
+      )}</section>`);
+    } else {
+      parts.push('<p class="hint">Para ver o resultado técnico de cada regra, avalie com a opção “Incluir detalhes técnicos de cada regra”.</p>');
+    }
+    return `<tr class="detail-row"><td colspan="${cols}"><div class="detail">${parts.join('')}</div></td></tr>`;
+  }
+
+  function renderTable() {
+    renderHead();
+    const cols = 11;
+    const total = state.filtered.length;
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    state.page = Math.min(Math.max(1, state.page), pages);
+    const start = (state.page - 1) * state.pageSize;
+    const slice = state.filtered.slice(start, start + state.pageSize);
+    let html = '';
+    for (const i of slice) {
+      const n = state.notes[i];
+      html += rowHtml(n);
+      if (state.expanded.has(n.linha)) html += detailHtml(n, cols);
+    }
+    $('#notesBody').innerHTML = html || `<tr><td colspan="${cols}" class="empty">Nenhuma nota corresponde aos filtros.</td></tr>`;
+    const all = state.notes.length;
+    $('#notesCount').textContent = total
+      ? `Mostrando ${fmtInt(start + 1)}–${fmtInt(start + slice.length)} de ${fmtInt(total)} nota(s)${total !== all ? ` filtradas (${fmtInt(all)} no total)` : ''}`
+      : `Nenhuma de ${fmtInt(all)} notas`;
+    $('#pgInfo').textContent = `Página ${fmtInt(state.page)} de ${fmtInt(pages)}`;
+    $('#pgFirst').disabled = state.page <= 1;
+    $('#pgPrev').disabled = state.page <= 1;
+    $('#pgNext').disabled = state.page >= pages;
+    $('#pgLast').disabled = state.page >= pages;
+  }
+
+  function toggleRow(linha) {
+    if (state.expanded.has(linha)) state.expanded.delete(linha);
+    else state.expanded.add(linha);
+    renderTable();
+    const btn = $(`#notesBody [data-expand="${CSS.escape(String(linha))}"]`);
+    if (btn) btn.focus();
+  }
+
+  function setRuleFilter(code) {
+    state.filters.rule = state.filters.rule === code ? '' : code;
+    $('#fRule').value = state.filters.rule;
+    applyFilters();
+    $('#notesCard').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  /* ---------- Exportações ---------- */
+
+  function csvCell(value) {
+    let s = String(value ?? '');
+    if (/^[=+@]/.test(s) || /^-[^\d]/.test(s)) s = `'${s}`; // evita fórmulas ao abrir no Excel
+    return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+
+  function exportCsv() {
+    if (!state.result) return;
+    const header = ['linha', 'id', 'status', 'barrado_por', 'motivos', 'cedente', 'sacado', 'doc_sacado', 'tipo_recebivel', 'vencimento', 'valor_nominal', 'desconto', 'valor_liquido'];
+    const lines = [header.join(';')];
+    for (const i of state.filtered) {
+      const n = state.notes[i];
+      lines.push([
+        n.linha, n.id, n.status, (n.barrado_por || []).join(','), (n.motivos || []).join(' | '),
+        n.cedente, n.sacado, n.doc_sacado, n.tipo_recebivel, fmtDate(n.vencimento),
+        n.valor_nominal ? n.valor_nominal.reais : '', n.desconto ? n.desconto.reais : '', n.valor_liquido ? n.valor_liquido.reais : '',
+      ].map(csvCell).join(';'));
+    }
+    download(`resultado_${stamp()}.csv`, `﻿${lines.join('\r\n')}\r\n`, 'text/csv;charset=utf-8');
+    toast(`CSV gerado com ${fmtInt(state.filtered.length)} notas.`, 'success');
+  }
+
+  function exportGabarito() {
+    if (!state.result) return;
+    const lines = state.notes.map((n) => {
+      let s = `{"linha": ${Number(n.linha)}, "id": ${JSON.stringify(String(n.id))}, "status": ${JSON.stringify(n.status)}`;
+      if (Array.isArray(n.barrado_por) && n.barrado_por.length) s += `, "barrado_por": [${n.barrado_por.map((r) => JSON.stringify(r)).join(', ')}]`;
+      return `${s}}`;
+    });
+    download(`resultado_gabarito_${stamp()}.json`, `[\n${lines.join(',\n')}\n]\n`, 'application/json');
+    toast('Arquivo no formato do gabarito gerado.', 'success');
+  }
+
+  function exportJson() {
+    if (!state.result) return;
+    download(`resultado_completo_${stamp()}.json`, JSON.stringify(state.result, null, 2), 'application/json');
+  }
+
+  /* ---------- Comparação com o gabarito ---------- */
+
+  function sameRuleSet(a, b) {
+    if (a.size !== b.size) return false;
+    for (const x of a) if (!b.has(x)) return false;
+    return true;
+  }
+
+  function runComparison() {
+    const expected = state.expected;
+    const ours = new Map(state.notes.map((n) => [n.linha, n]));
+    const expectedByLine = new Map();
+    const diff = new Map();
+    const patterns = new Map();
+    const perRule = new Map();
+    let invalid = 0;
+    let compared = 0;
+    let equal = 0;
+    let idMismatch = 0;
+    let missingInResult = 0;
+    const tally = (rule, field) => {
+      const r = perRule.get(rule) || { exp: 0, got: 0, both: 0 };
+      r[field] += 1;
+      perRule.set(rule, r);
+    };
+    for (const e of expected) {
+      if (!e || typeof e !== 'object' || !Number.isInteger(e.linha)) { invalid += 1; continue; }
+      expectedByLine.set(e.linha, e);
+      const n = ours.get(e.linha);
+      if (!n) { missingInResult += 1; continue; }
+      compared += 1;
+      const expRules = new Set(Array.isArray(e.barrado_por) ? e.barrado_por : []);
+      const gotRules = new Set(Array.isArray(n.barrado_por) ? n.barrado_por : []);
+      for (const r of expRules) { tally(r, 'exp'); if (gotRules.has(r)) tally(r, 'both'); }
+      for (const r of gotRules) tally(r, 'got');
+      const sameId = e.id === undefined || String(e.id) === String(n.id);
+      if (sameId && e.status === n.status && sameRuleSet(expRules, gotRules)) { equal += 1; continue; }
+      if (!sameId) idMismatch += 1;
+      diff.set(e.linha, e);
+      const describe = (status, rules) => `${status}${rules.size ? ` por ${[...rules].join(' + ')}` : ''}`;
+      const key = sameId ? `esperado ${describe(e.status, expRules)} → API ${describe(n.status, gotRules)}` : 'nota diferente na mesma linha (o arquivo esperado parece ser de outro CSV)';
+      patterns.set(key, (patterns.get(key) || 0) + 1);
+    }
+    const extraInResult = state.notes.reduce((acc, n) => acc + (expectedByLine.has(n.linha) ? 0 : 1), 0);
+    state.comparison = {
+      total: expected.length, invalid, compared, equal, idMismatch, missingInResult, extraInResult,
+      diff, expectedByLine,
+      patterns: [...patterns.entries()].sort((a, b) => b[1] - a[1]),
+      perRule: [...perRule.entries()].sort((a, b) => (b[1].exp + b[1].got) - (a[1].exp + a[1].got)),
+    };
+  }
+
+  function renderComparison() {
+    const out = $('#compareOut');
+    const c = state.comparison;
+    if (!state.expected) { out.innerHTML = ''; return; }
+    if (!c) {
+      out.innerHTML = `<p class="muted">${statusDot('accent', '●')} Arquivo esperado carregado (${esc(state.expectedName)}, ${fmtInt(state.expected.length)} linhas). A comparação aparece assim que houver um resultado.</p>`;
+      return;
+    }
+    const kpi = (label, value, sub = '') => `<div class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${esc(value)}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ''}</div>`;
+    const warn = c.compared && c.idMismatch > c.compared / 2
+      ? `<div class="alert alert-warning" style="margin-top:12px"><div class="alert-title">${statusDot('warning', '!')}<span>O arquivo esperado parece ser de outro CSV</span></div><p>${fmtInt(c.idMismatch)} das ${fmtInt(c.compared)} linhas comparadas têm números de nota diferentes. Compare com o resultado do mesmo arquivo que gerou o gabarito.</p></div>`
+      : '';
+    out.innerHTML = `
+      <div class="out-head">${statusDot(c.diff.size ? 'critical' : 'good', c.diff.size ? '✕' : '✓')}<span>${c.diff.size ? `${fmtInt(c.diff.size)} linha(s) divergente(s)` : 'Nenhuma divergência nas linhas comparadas'} · ${esc(state.expectedName)}</span></div>
+      <div class="kpis">
+        ${kpi('Linhas no arquivo esperado', fmtInt(c.total), c.invalid ? `${fmtInt(c.invalid)} inválida(s) ignorada(s)` : '')}
+        ${kpi('Comparadas', fmtInt(c.compared))}
+        ${kpi(`${statusDot('good', '✓')}Iguais`, fmtInt(c.equal), fmtPct(c.equal, c.compared))}
+        ${kpi(`${statusDot('critical', '✕')}Divergentes`, fmtInt(c.diff.size), fmtPct(c.diff.size, c.compared))}
+        ${kpi('Só no arquivo esperado', fmtInt(c.missingInResult), 'linhas que o resultado não tem')}
+        ${kpi('Só no resultado', fmtInt(c.extraInResult), 'linhas que o esperado não tem')}
+      </div>
+      ${warn}
+      <h3 style="margin:18px 0 8px">Por regra</h3>
+      <p class="hint" style="margin:0 0 8px">“Só no esperado”: o gabarito barra e a API deixou passar. “Só na API”: a API barra e o gabarito não.</p>
+      ${simpleTable(
+        ['Regra', 'Barradas no esperado', 'Barradas pela API', 'Em ambos', 'Só no esperado', 'Só na API'],
+        c.perRule.map(([code, r]) => [
+          `<div class="cell-main">${esc(ruleName(code))}</div><code class="cell-sub">${esc(code)}</code>`,
+          fmtInt(r.exp), fmtInt(r.got), fmtInt(r.both),
+          r.exp - r.both ? `<b>${fmtInt(r.exp - r.both)}</b>` : '0',
+          r.got - r.both ? `<b>${fmtInt(r.got - r.both)}</b>` : '0',
+        ]),
+        [false, true, true, true, true, true],
+        { scroll: false },
+      )}
+      <h3 style="margin:18px 0 8px">Tipos de divergência</h3>
+      ${c.patterns.length
+        ? simpleTable(['Diferença', 'Linhas'], c.patterns.slice(0, 25).map(([k, v]) => [esc(k), fmtInt(v)]), [false, true], { scroll: false })
+        : '<p class="muted">Nenhuma.</p>'}`;
+  }
+
+  async function compareExpected(btn) {
+    const file = $('#expectedFile').files[0];
+    if (!file) { toast('Escolha o arquivo JSON esperado primeiro.', 'error'); return; }
+    await withBusy(btn, 'Comparando…', async () => {
+      try {
+        const parsed = JSON.parse(await file.text());
+        const list = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.notas) ? parsed.notas : null;
+        if (!list) throw new Error('O arquivo precisa ser uma lista JSON (como o resultado_esperado_100k.json) ou um JSON completo com "notas".');
+        state.expected = list;
+        state.expectedName = file.name;
+        if (state.result) runComparison();
+        renderComparison();
+        toast(state.result ? 'Comparação concluída.' : 'Arquivo esperado carregado. Avalie um lote para comparar.', 'success');
+      } catch (err) {
+        $('#compareOut').innerHTML = errorBoxHtml({ message: err.message }, 'Não foi possível ler o arquivo esperado');
+      }
+    });
+  }
+
+  function clearComparison() {
+    state.expected = null;
+    state.expectedName = '';
+    state.comparison = null;
+    renderComparison();
+  }
+
+  /* ============================================================
+     4. DUPLICIDADE
+     ============================================================ */
+
+  async function testDuplicates(btn) {
+    const file = $('#dupFile').files[0] || $('#notesFile').files[0];
+    if (!file) { toast('Escolha um CSV aqui ou na aba Lote de notas.', 'error'); return; }
+    const out = $('#dupOut');
+    out.innerHTML = `<article class="card">${loadingHtml(`Testando duplicidade de ${file.name}…`)}</article>`;
+    const body = new FormData();
+    body.append('file', file);
+    await withBusy(btn, 'Testando…', async () => {
+      try {
+        const d = await api('POST', '/test-duplicates', { body });
+        const kpi = (label, value, sub = '') => `<div class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${esc(value)}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ''}</div>`;
+        const examples = (list) => simpleTable(
+          ['CNPJ do cedente', 'CNPJ do sacado', 'Número da nota', 'Tipo'],
+          (list || []).map((x) => [`<code>${esc(x.DOC_CEDENTE)}</code>`, `<code>${esc(x.DOC_SACADO)}</code>`, `<code>${esc(x.NU_DOCUMENTO)}</code>`, esc(x.TIPO_RECEBIVEL)]),
+          [], { scroll: false },
+        );
+        out.innerHTML = `
+          <article class="card">
+            <div class="card-head"><div><h2>Resultado</h2><p>${esc(file.name)} · modo ${esc(d.modo)}</p></div></div>
+            <div class="kpis">
+              ${kpi('Linhas analisadas', fmtInt(d.total_linhas_analisadas))}
+              ${kpi('Chaves únicas no arquivo', fmtInt(d.chaves_unicas_neste_csv))}
+              ${kpi(`${statusDot(d.duplicatas_no_csv ? 'warning' : 'good', d.duplicatas_no_csv ? '!' : '✓')}Repetidas no arquivo`, fmtInt(d.duplicatas_no_csv))}
+              ${kpi(`${statusDot(d.duplicatas_no_historico_anterior ? 'warning' : 'good', d.duplicatas_no_historico_anterior ? '!' : '✓')}Já vistas no histórico`, fmtInt(d.duplicatas_no_historico_anterior))}
+              ${kpi('Chaves novas gravadas', fmtInt(d.novas_chaves_registradas_no_historico_teste))}
+            </div>
+            <p class="hint">${esc(d.aviso)}</p>
+          </article>
+          <article class="card">
+            <h3 style="margin-bottom:8px">Exemplos repetidos dentro do arquivo (até 10)</h3>
+            ${examples(d.exemplos_duplicatas_no_csv)}
+            <h3 style="margin:16px 0 8px">Exemplos já vistos no histórico (até 10)</h3>
+            ${examples(d.exemplos_duplicatas_no_historico)}
+          </article>`;
+      } catch (err) {
+        out.innerHTML = `<article class="card">${errorBoxHtml(err, 'O teste de duplicidade não foi concluído')}</article>`;
+      }
+    });
+  }
+
+  /* ============================================================
+     5. JOBS
+     ============================================================ */
+
+  function registerSessionJob(id, file) {
+    state.sessionJobs.unshift({ id, file, createdAt: new Date(), status: 'na_fila', percentual: 0 });
+    $('#jobIdInput').value = id;
+    renderSessionJobs();
+  }
+
+  function updateSessionJob(id, patch) {
+    const job = state.sessionJobs.find((j) => j.id === id);
+    if (!job) return;
+    const changed = Object.keys(patch).some((k) => job[k] !== patch[k]);
+    Object.assign(job, patch);
+    if (changed) renderSessionJobs();
+  }
+
+  function renderSessionJobs() {
+    $('#sessionJobsBody').innerHTML = state.sessionJobs.length
+      ? state.sessionJobs.map((j) => {
+          const meta = JOB_STATUS_META[j.status] || { label: j.status, icon: '?', cls: 'neutral' };
+          const pct = j.status === 'processando' ? ` · ${fmtNum1(j.percentual)}%` : '';
+          return `<tr>
+            <td><code>${esc(j.id)}</code></td>
+            <td>${esc(j.createdAt.toLocaleTimeString('pt-BR'))}</td>
+            <td>${esc(j.file || '—')}</td>
+            <td>${badge({ ...meta, label: meta.label + pct })}</td>
+            <td><div class="actions tight">
+              <button class="btn small" type="button" data-job-act="status" data-job="${esc(j.id)}">Status</button>
+              <button class="btn small" type="button" data-job-act="track" data-job="${esc(j.id)}">Acompanhar</button>
+              <button class="btn small" type="button" data-job-act="result" data-job="${esc(j.id)}">Resultado</button>
+            </div></td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="5" class="empty">Nenhum job criado nesta sessão.</td></tr>';
+  }
+
+  function jobIdValue() {
+    const id = $('#jobIdInput').value.trim();
+    if (!id) toast('Informe o código do job.', 'error');
+    return id;
+  }
+
+  function snapshotHtml(s) {
+    const meta = JOB_STATUS_META[s.status] || { label: s.status, icon: '?', cls: 'neutral' };
+    const stages = Array.isArray(s.etapas) ? s.etapas.map((st) => STAGE_NAMES[st] || st).join(' → ') : '—';
+    return `<div class="out-head">${badge(meta)}<span>${fmtNum1(s.percentual)}%</span></div>
+      <dl class="kv">
+        <dt>Código</dt><dd><code>${esc(s.job_id)}</code></dd>
+        <dt>Etapas</dt><dd>${esc(stages)}</dd>
+        <dt>Etapa atual</dt><dd>${esc(STAGE_NAMES[s.etapa] || s.etapa || '—')}</dd>
+        <dt>Descrição</dt><dd>${esc(s.descricao)}</dd>
+        <dt>Na etapa atual</dt><dd>${fmtInt(s.processados)} de ${fmtInt(s.total)} · faltam ${fmtInt(s.faltam)}</dd>
+        <dt>Versão do estado</dt><dd>${fmtInt(s.versao)}</dd>
+      </dl>
+      ${s.erro ? errorBoxHtml({ info: describeError({ detail: s.erro.detail }, s.erro.status_code), status: s.erro.status_code }, 'O job terminou com erro') : ''}`;
+  }
+
+  async function jobStatus(btn, id = jobIdValue()) {
+    if (!id) return;
+    $('#jobIdInput').value = id;
+    await withBusy(btn, 'Consultando…', async () => {
+      try {
+        const snap = await api('GET', `/jobs/${encodeURIComponent(id)}`);
+        $('#jobOut').innerHTML = snapshotHtml(snap);
+        updateSessionJob(id, { status: snap.status, percentual: snap.percentual });
+      } catch (err) {
+        $('#jobOut').innerHTML = errorBoxHtml(err, 'Não foi possível consultar o job');
+      }
+    });
+  }
+
+  function jobTrack(id = jobIdValue()) {
+    if (!id) return;
+    $('#jobIdInput').value = id;
+    const known = state.sessionJobs.find((j) => j.id === id);
+    $('#jobOut').innerHTML = '';
+    trackJob(id, { container: $('#jobProgress'), file: known ? known.file : '—', title: 'Acompanhando job' });
+  }
+
+  async function jobResult(btn, id = jobIdValue()) {
+    if (!id) return;
+    $('#jobIdInput').value = id;
+    await withBusy(btn, 'Buscando…', async () => {
+      try {
+        const data = await api('GET', `/jobs/${encodeURIComponent(id)}/resultado`);
+        const known = state.sessionJobs.find((j) => j.id === id);
+        loadResult(data, { source: 'GET /jobs/{job_id}/resultado', file: known ? known.file : '—', jobId: id });
+        $('#jobOut').innerHTML = `<div class="alert"><div class="alert-title">${statusDot('good', '✓')}<span>Resultado carregado: ${fmtInt(data.resumo.total_notas)} notas.</span></div><div class="actions"><button class="btn primary" type="button" data-goto="resultados">Ver resultados</button></div></div>`;
+      } catch (err) {
+        const title = err.status === 409 ? 'O job ainda não terminou' : 'Não foi possível buscar o resultado';
+        $('#jobOut').innerHTML = errorBoxHtml(err, title);
+      }
+    });
+  }
+
+  /* ============================================================
+     TEMA
+     ============================================================ */
+
+  const THEMES = ['auto', 'light', 'dark'];
+  const THEME_LABELS = { auto: 'automático', light: 'claro', dark: 'escuro' };
+
+  function applyTheme(theme) {
+    const t = THEMES.includes(theme) ? theme : 'auto';
+    if (t === 'auto') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = t;
+    $('#themeBtn').textContent = `Tema: ${THEME_LABELS[t]}`;
+    $('#themeBtn').dataset.theme = t;
+    storageSet('antecipe.theme', t === 'auto' ? null : t);
+  }
+
+  /* ============================================================
+     EVENTOS E INICIALIZAÇÃO
+     ============================================================ */
+
+  function bindEvents() {
+    $('#connForm').addEventListener('submit', (e) => { e.preventDefault(); connect(true); });
+    $('#themeBtn').addEventListener('click', () => {
+      const cur = $('#themeBtn').dataset.theme || 'auto';
+      applyTheme(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+    });
+
+    $('#btnRulesUpload').addEventListener('click', (e) => uploadRules(e.currentTarget));
+    $('#btnRulesGet').addEventListener('click', (e) => getRules(e.currentTarget));
+    $('#btnSitUpload').addEventListener('click', (e) => uploadSituations(e.currentTarget));
+    $('#btnSitGet').addEventListener('click', (e) => getSituations(e.currentTarget));
+
+    $('#btnParse').addEventListener('click', (e) => parseCsv(e.currentTarget));
+    $('#btnEvaluate').addEventListener('click', (e) => evaluate(e.currentTarget));
+
+    $('#fSearch').addEventListener('input', debounce((e) => { state.filters.q = e.target.value; applyFilters(); }, 200));
+    $('#fStatus').addEventListener('change', (e) => { state.filters.status = e.target.value; applyFilters(); });
+    $('#fRule').addEventListener('change', (e) => { state.filters.rule = e.target.value; applyFilters(); });
+    $('#btnClearFilters').addEventListener('click', () => {
+      state.filters = { q: '', status: '', rule: '' };
+      $('#fSearch').value = '';
+      $('#fStatus').value = '';
+      $('#fRule').value = '';
+      applyFilters();
+    });
+    $('#fPageSize').addEventListener('change', (e) => { state.pageSize = Number(e.target.value) || 50; state.page = 1; renderTable(); });
+    $('#pgFirst').addEventListener('click', () => { state.page = 1; renderTable(); });
+    $('#pgPrev').addEventListener('click', () => { state.page -= 1; renderTable(); });
+    $('#pgNext').addEventListener('click', () => { state.page += 1; renderTable(); });
+    $('#pgLast').addEventListener('click', () => { state.page = Number.MAX_SAFE_INTEGER; renderTable(); });
+
+    $('#notesHead').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-sort]');
+      if (!btn) return;
+      const key = btn.dataset.sort;
+      state.sort = state.sort.key === key ? { key, dir: -state.sort.dir } : { key, dir: 1 };
+      state.filtered.sort((a, b) => a - b); // volta à ordem do arquivo antes de reordenar
+      sortFiltered();
+      state.page = 1;
+      renderTable();
+    });
+
+    $('#notesBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-expand]');
+      if (btn) { toggleRow(Number(btn.dataset.expand)); return; }
+      const row = e.target.closest('tr.note-row');
+      if (row && !String(window.getSelection())) toggleRow(Number(row.dataset.linha));
+    });
+
+    const ruleChart = $('#rulesChart');
+    ruleChart.addEventListener('click', (e) => {
+      const row = e.target.closest('.bar-row.clickable');
+      if (row) setRuleFilter(row.dataset.key);
+    });
+    ruleChart.addEventListener('keydown', (e) => {
+      const row = e.target.closest('.bar-row.clickable');
+      if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setRuleFilter(row.dataset.key); }
+    });
+
+    $('#btnExportCsv').addEventListener('click', exportCsv);
+    $('#btnExportGab').addEventListener('click', exportGabarito);
+    $('#btnExportJson').addEventListener('click', exportJson);
+    $('#btnCompare').addEventListener('click', (e) => compareExpected(e.currentTarget));
+    $('#btnCompareClear').addEventListener('click', clearComparison);
+
+    $('#btnDup').addEventListener('click', (e) => testDuplicates(e.currentTarget));
+
+    $('#btnJobStatus').addEventListener('click', (e) => jobStatus(e.currentTarget));
+    $('#btnJobTrack').addEventListener('click', () => jobTrack());
+    $('#btnJobResult').addEventListener('click', (e) => jobResult(e.currentTarget));
+    $('#sessionJobsBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-job-act]');
+      if (!btn) return;
+      const id = btn.dataset.job;
+      if (btn.dataset.jobAct === 'status') jobStatus(btn, id);
+      if (btn.dataset.jobAct === 'track') jobTrack(id);
+      if (btn.dataset.jobAct === 'result') jobResult(btn, id);
+    });
+
+    document.addEventListener('click', (e) => {
+      const go = e.target.closest('[data-goto]');
+      if (go) showTab(go.dataset.goto);
+    });
+
+    $('#btnLogClear').addEventListener('click', () => {
+      state.log = [];
+      state.selectedLog = null;
+      $('#logPreview').textContent = 'Selecione uma requisição.';
+      renderLog();
+    });
+    $('#logBody').addEventListener('click', (e) => {
+      const row = e.target.closest('[data-log]');
+      if (row) selectLog(Number(row.dataset.log));
+    });
+    $('#logBody').addEventListener('keydown', (e) => {
+      const row = e.target.closest('[data-log]');
+      if (row && e.key === 'Enter') selectLog(Number(row.dataset.log));
+    });
+
+    $$('input[name="mode"]').forEach((radio) => radio.addEventListener('change', () => {
+      const direct = $('input[name="mode"]:checked').value === 'direto';
+      $('#jobFiles').classList.toggle('muted', direct);
+      $('#jobRulesFile').disabled = direct;
+      $('#jobSitFile').disabled = direct;
+    }));
+
+    window.addEventListener('resize', debounce(fitSplitLabels, 150));
+  }
+
+  function init() {
+    applyTheme(storageGet('antecipe.theme') || 'auto');
+    setupTabs();
+    setupFilePickers();
+    setupTooltip();
+    setupTableToggles();
+    bindEvents();
+    renderServerChips();
+    renderSessionJobs();
+    renderLog();
+    detectApiBase().then((base) => {
+      $('#apiBase').value = base;
+      connect(false);
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

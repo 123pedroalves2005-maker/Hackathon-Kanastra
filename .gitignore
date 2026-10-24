@@ -1,0 +1,18 @@
+# Ambiente virtual e cache do Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Arquivos gerados pela API ao ser usada
+*.pkl
+*.tmp
+
+# Configurações locais
+.env
+.vscode/
+.idea/
+
+# Logs da aplicação
+logs/
+*.log
