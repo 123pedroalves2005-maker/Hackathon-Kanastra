@@ -1,5 +1,7 @@
 ## Nomes: Bernardo Quaresma, Marcus Vinícius, Pedro Alves
 
+> **Guia de estudo:** [Antecipe por dentro](https://claude.ai/artifact/DHCoJqc5EkXVUv1E4o1pE9): explica o projeto passo a passo, com diagramas e exercícios.
+
 # Antecipe: validação e precificação de recebíveis
 
 Solução para o desafio **Antecipe** do Hackathon Kanastra. Uma empresa envia um lote de notas (recebíveis) em CSV. A API confere cada nota contra as regras do fundo (`validadores_antecipe.json`) e devolve, para cada uma:
